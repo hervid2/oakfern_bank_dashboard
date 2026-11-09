@@ -1,0 +1,17 @@
+# Minimal guard created during Genesis (SP-8) to prevent credential leaks.
+# Feature 000 replaces this with the full stack .gitignore.
+
+# Environment / secrets — never commit
+.env
+.env.*
+!.env.example
+
+# Dependencies & build output
+node_modules/
+.next/
+dist/
+coverage/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
