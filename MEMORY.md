@@ -29,7 +29,7 @@ Estimated remaining work ~19 h 45 min against ~24 h to deadline (~4 h buffer).
 - **OQ-008 (remaining):** production deploy authorisation. Vercel project now connected to the repo by the human; the deploy itself still needs his explicit go-ahead (Art. 9).
 - **MCP:** only `playwright` installed in `.mcp.json` (verified, no auth). `context7` omitted — needs `CONTEXT7_API_KEY`; Art. 14 falls back to WebSearch, which is working. `neon` MCP entry will be written by `neon init` once the human logs in; reconcile to a single project-scoped server then.
 - **`neon login` is pending the human** (needs an interactive browser; CLI 9.3.2 installed globally). Then I run `neon init -y --agent claude-code --no-config --org-id … --project-id …`.
-- **Docker Desktop:** human is starting it. Needed by 000 for local Postgres.
+- **Docker:** ✅ daemon up (29.7.2), zero containers running. The human's unrelated `aac27-mysql` / `aac27-redis` were stopped at his request (restore with `docker start aac27-mysql aac27-redis`); they used 3307/6379 and never conflicted with Postgres 5432. Feature 000 still has to create `docker-compose.yml`.
 - **TD-008:** `@axe-core/playwright`, `@date-fns/tz`, `lucide-react`, `sonner` versions deliberately unverified — Implementer must verify at install time (Art. 14).
 - **RSK-04:** Neon autosuspends after 5 min; NFR-001 must be measured on a warmed deployment, cold figure reported honestly in the README.
 
