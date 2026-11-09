@@ -1,7 +1,7 @@
 # MEMORY.md — living status board (≤ 50 lines, no secrets)
 
 **Project:** Oakfern — modern banking dashboard (Post Oak Group technical case study)
-**Profile:** Sprint (GENESIS 1.1.0, KICKOFF §1) · **Stage:** Genesis, G4 complete → 🚦 G-Harness pending
+**Profile:** Sprint (GENESIS 1.1.0, KICKOFF §1) · **Stage:** Genesis complete → feature `000-walking-skeleton` (SDD phase 2, /sdd-specify)
 **Deadline:** 2026-11-10 18:00 America/New_York · **Started:** 2026-11-09 ~17:00 ET
 **Repo:** https://github.com/hervid2/oakfern_bank_dashboard (final name, remote set, connected to Vercel by the human)
 **Supreme Law now lives at** `docs/governance/GENESIS.md` (moved in G4.8).
@@ -10,10 +10,10 @@
 | Item | Timebox | Consumed | Status |
 |---|---|---|---|
 | Genesis G0–G3 | ~1 h 05 min | ~1 h 05 min | ✅ G-Foundational approved 2026-11-09 |
-| Genesis G4 | 25 min | in progress | 🚦 G-Harness pending |
-| 000 walking-skeleton | 1 h 45 min | — | not started |
+| Genesis G4 | 25 min | ~25 min | ✅ 🚦 G-Harness approved 2026-11-09 18:35 ET |
+| 000 walking-skeleton | 1 h 45 min | started 18:40 ET | in progress — /sdd-specify |
 | 001–008 | ~16 h 30 min | — | not started |
-Estimated remaining work ~19 h 45 min against ~24 h to deadline (~4 h buffer).
+Estimated remaining work ~18 h 15 min against ~23 h 20 min to deadline (~5 h buffer, re-measured 18:40 ET).
 
 ## Decided (do not re-litigate)
 - Brand: **Oakfern**. Original, collision-checked. No Mercury/Slash resemblance (KICKOFF §2).
@@ -27,8 +27,8 @@ Estimated remaining work ~19 h 45 min against ~24 h to deadline (~4 h buffer).
 
 ## Open / blocking
 - **OQ-008 (remaining):** production deploy authorisation. Vercel project now connected to the repo by the human; the deploy itself still needs his explicit go-ahead (Art. 9).
-- **MCP:** only `playwright` installed in `.mcp.json` (verified, no auth). `context7` omitted — needs `CONTEXT7_API_KEY`; Art. 14 falls back to WebSearch, which is working. `neon` MCP entry will be written by `neon init` once the human logs in; reconcile to a single project-scoped server then.
-- **`neon login` is pending the human** (needs an interactive browser; CLI 9.3.2 installed globally). Then I run `neon init -y --agent claude-code --no-config --org-id … --project-id …`.
+- **MCP:** `.mcp.json` now has `playwright` + `neon` (http, `?projectId=sweet-feather-13830390`). `context7` omitted — needs `CONTEXT7_API_KEY`; Art. 14 falls back to WebSearch, which works. The `neon` server needs the human's trust-dialog approval and possibly a Claude Code restart (N-5); its OAuth is unconfirmed until first use.
+- **Neon:** ✅ human logged in 2026-11-09 (`hdcardonab`, OAuth DEFAULT profile). Project `sweet-feather-13830390` verified live: Postgres 18, `aws-us-east-1`, 0 B used, still named `my-first-project` (cosmetic). `neon init` was **deliberately not run** — it also does agent-setup/`neon.ts`/skills, out of scope; the project-scoped MCP entry was written by hand per `.harness/mcp.md` N-4.
 - **Docker:** ✅ daemon up (29.7.2), zero containers running. The human's unrelated `aac27-mysql` / `aac27-redis` were stopped at his request (restore with `docker start aac27-mysql aac27-redis`); they used 3307/6379 and never conflicted with Postgres 5432. Feature 000 still has to create `docker-compose.yml`.
 - **TD-008:** `@axe-core/playwright`, `@date-fns/tz`, `lucide-react`, `sonner` versions deliberately unverified — Implementer must verify at install time (Art. 14).
 - **RSK-04:** Neon autosuspends after 5 min; NFR-001 must be measured on a warmed deployment, cold figure reported honestly in the README.
@@ -38,4 +38,4 @@ Estimated remaining work ~19 h 45 min against ~24 h to deadline (~4 h buffer).
 - `.gitignore` was created during Genesis (SP-8) *before* any tool could write `.env`. Feature 000 replaces it with the full version.
 
 ## Next step
-Finish G4 (Planner: ADR statuses → Accepted, `AGENTS.md`, `.harness/mcp.md`; Coordinator: `.mcp.json`), request 🚦 **G-Harness**, then first commit `chore: bootstrap project harness (genesis)` and start feature 000.
+Feature `000-walking-skeleton`: `/sdd-specify` → `/sdd-clarify` → `/sdd-plan` → `/sdd-tasks` → 🚦 **G-SpecPlan**. Then implement task by task, `/sdd-validate 000 combined`, 🚦 G-Merge. Production deploy still gated on OQ-008.

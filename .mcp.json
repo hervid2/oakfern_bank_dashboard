@@ -3,6 +3,10 @@
     "playwright": {
       "command": "npx",
       "args": ["-y", "@playwright/mcp@latest", "--headless", "--isolated"]
+    },
+    "neon": {
+      "type": "http",
+      "url": "https://mcp.neon.tech/mcp?projectId=sweet-feather-13830390"
     }
   }
 }
