@@ -27,5 +27,7 @@
 # SVG is text (we hand-edit it) but must stay LF like everything else.
 *.svg text eol=lf
 
-# Lockfiles are text but generated; keep them LF and out of diffs.
-pnpm-lock.yaml text eol=lf -diff
+# The lockfile is text and LF like everything else. It is deliberately NOT
+# marked `-diff`: that renders it as "Bin" in `git show --stat`, and a reviewer
+# needs to be able to read a dependency change.
+pnpm-lock.yaml text eol=lf
