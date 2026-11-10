@@ -121,9 +121,18 @@ test.describe('shell', () => {
     await expect(page.locator('[aria-current="page"]')).toHaveCount(1);
     await expect(page.locator('[aria-current="page"]')).toHaveText('Transactions');
 
-    // The user menu names the seeded user; the CTA has an accessible name.
+    // The user menu names the seeded user.
     await expect(page.getByRole('button', { name: `Account: ${DEMO_USER_NAME}` })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Move money', exact: true }).last()).toBeVisible();
+
+    // OQ-002-03 was resolved "no primary CTA that leads nowhere": `/move-money`
+    // is a placeholder while 005 is cut, so the topbar carries no "Move money"
+    // call-to-action. The *navigation* item stays — that resolution allows it —
+    // so the one remaining link is the sidebar's.
+    await expect(
+      page.getByRole('banner').getByRole('link', { name: 'Move money', exact: true }),
+    ).toHaveCount(0);
+    await expect(page.getByRole('link', { name: 'Move money', exact: true })).toHaveCount(1);
+    await expect(nav.getByRole('link', { name: 'Move money', exact: true })).toBeVisible();
   });
 
   test('AC-001-14: a dark OS preference renders dark before the first paint, and the toggle survives a reload', async ({
@@ -274,8 +283,11 @@ test.describe('shell', () => {
   test('AC-001-18: each placeholder route states what it does not yet do', async ({ page }) => {
     await signIn(page);
 
+    // Home is **no longer a placeholder**: feature 002 filled it with the real
+    // figures, so the 001 assertion on "No figures on this screen yet" was
+    // removed rather than weakened. What remains true of Home — one `<h1>`, a
+    // content-shaped skeleton — is asserted below and in `home.spec.ts`.
     await expect(page.getByRole('heading', { level: 1, name: 'Home' })).toBeVisible();
-    await expect(page.getByText('No figures on this screen yet')).toBeVisible();
 
     await page.goto('/transactions');
     await expect(page.getByRole('heading', { level: 1, name: 'Transactions' })).toBeVisible();

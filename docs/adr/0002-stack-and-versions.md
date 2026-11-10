@@ -121,6 +121,24 @@ open: **`@axe-core/playwright`**, deferred to feature 003 with the NFR-003 axe s
 **`sonner`**, which no screen in 001 needs — the first toast appears with money movement in
 feature 005. Neither is guessed anywhere in the repository.
 
+### Note — `recharts` is pinned but **not installed** (feature 002, 2026-11-10)
+
+`recharts@3.10.1` is pinned in the Decision table above and `docs/ux/ui-brief.md` §5 names it as the
+charting route ("Recharts via shadcn charts"). **Verified on 2026-11-10: it is absent from
+`package.json`, and feature 002 does not add it.** Two reasons, both decided by the Technical
+Director at 🚦 G-SpecPlan 002:
+
+- Feature **004 `cash-insights` is CUT**, so no chart ships.
+- The last chart-shaped requirement, **FR-012b** (cash sparkline), was **deferred** by cut ladder
+  **L-4** the same day (`docs/requirements/functional.md` Amendment C-2). With nothing to render,
+  Art. 10's "don't add it" option wins outright — and 001 measured how expensive an unanticipated
+  shadcn dependency set is inside a timebox.
+
+**The pin stands** as the verified-at-decision-time version for a future feature that needs a chart.
+It is **not** a claim that the package is in the tree. Whoever first installs it re-verifies the
+version against the npm registry at install time (Art. 14) and records the resolved version in that
+feature's `plan.md`, exactly as TD-008 requires.
+
 ## Consequences
 
 **Positive**
