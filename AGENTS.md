@@ -5,8 +5,11 @@
 ## Project
 **Oakfern** is a fictional modern banking dashboard for US startups and SMBs (accounts, transactions,
 cash insights, money movement, cards), built as a technical case study for the Post Oak Group hiring
-team under a hard 24 h deadline. Status: Genesis phase G4 complete; 🚦 G-Foundational approved
-2026-11-09; next is feature `000-walking-skeleton`. No application code exists yet.
+team under a hard 24 h deadline. Status: 🚦 G-Foundational approved 2026-11-09. Feature
+`000-walking-skeleton` is **merged and deployed**; feature `001-domain-data-shell` is **implemented
+through T-14 with the full local gate green** (domain model + migration, deterministic seed, demo
+session, app shell) and waits on its two human-gated tasks (T-15 Neon deploy, T-16 PR and Preview),
+`/sdd-validate` and 🚦 G-Merge. Next after that: feature `002-account-overview`.
 
 ## Supreme Law (summary of `docs/governance/GENESIS.md`)
 1. No approved spec, no code. Plan before Build.
@@ -58,7 +61,8 @@ Authoritative pins are in **ADR-0002** (`docs/adr/0002-stack-and-versions.md`). 
 | Tests / dates / seed | `vitest` `5.1.0` · `@playwright/test` `1.65.0` · `date-fns` `4.4.0` · `@faker-js/faker` `10.6.0` (dev, fixed seed) |
 | Runtime | Node `22.17.0` · **pnpm** via corepack |
 | Hosting | Vercel Hobby + Neon Free Postgres; Docker Compose Postgres locally (ADR-0006) |
-| Unverified on purpose | `@axe-core/playwright`, `@date-fns/tz`, `lucide-react`, `sonner` — the Implementer verifies each against the registry at install time (Art. 14) and records the resolved version in the feature's `plan.md`. |
+| Resolved in 001 (ADR-0002 Amendment 2) | `tsx` `4.23.15` (seed runner) · `lucide-react` `1.70.0` · **`radix-ui` `1.8.1`** (the shadcn 4.23 `radix` base uses the **umbrella** package, not the per-primitive ones) · `class-variance-authority` `0.7.1` · `cn` `0.5.2` (shadcn's own clsx + tailwind-merge drop-in — which is why there is **no** `src/lib/utils.ts`) · `tw-animate-css` `1.4.0` · `next-themes` `0.4.6` · `@date-fns/tz` `1.5.0`. `shadcn` itself was auto-added to `dependencies` by the CLI and **deliberately removed**: it is a `dlx` CLI. |
+| Still unverified on purpose | `@axe-core/playwright` (due in 003) and `sonner` (due in 005) — the Implementer verifies each against the registry at install time (Art. 14) and records the resolved version in the feature's `plan.md`. TD-008 is therefore only **partly** closed. |
 
 ## Project commands
 > Every row below has been executed in this repository (001 T-02 and T-06; exit statuses in
@@ -67,13 +71,13 @@ Authoritative pins are in **ADR-0002** (`docs/adr/0002-stack-and-versions.md`). 
 
 | Action | Command | What it actually does |
 |---|---|---|
-| Install deps | `pnpm install` | Runs `postinstall` → `prisma generate`, so `src/generated/prisma` exists afterwards |
+| Install deps | `pnpm install` | Runs `postinstall` → `prisma generate`, so `src/generated/prisma` exists afterwards. `pnpm-workspace.yaml`'s `allowBuilds` must carry a decision for **every** package whose lifecycle scripts pnpm skips, `false` included: `prisma`/`@prisma/engines` are `true`, `esbuild` (transitive via `tsx` and vitest) is `false`. Without the `esbuild` entry, `pnpm install --frozen-lockfile` exits **1** with `ERR_PNPM_IGNORED_BUILDS` — measured, and it reddens every CI job |
 | Dev server | `pnpm dev` | `next dev` on `localhost:3000`; reads `.env.local` |
 | Lint | `pnpm lint` | **`eslint . && prettier --check .`** — "lint passing" means **both**. Exits 0 on Windows and on CI: `.gitattributes` (`* text=auto eol=lf`) makes LF the line ending in the index **and** in the working tree, matching `.prettierrc`'s `endOfLine: "lf"`. If Prettier ever reports every file at once, the checkout is CRLF — fix it with `git rm --cached -r . && git reset --hard`, never by reformatting files |
 | Type check | `pnpm typecheck` | `tsc --noEmit` |
 | Unit tests (all / one file) | `pnpm test` / `pnpm test <path>` | `vitest run --project unit` — the **`unit` project only**, never the integration one |
 | Integration tests | `pnpm test:int` | `vitest run --project integration`; needs a reachable PostgreSQL — `docker compose up -d`, host port **5433** locally |
-| End-to-end tests | `pnpm test:e2e` | `playwright test`; its `webServer` runs `pnpm build && pnpm start` itself — **do not build first** |
+| End-to-end tests | `pnpm test:e2e` | `playwright test`; its `webServer` runs `pnpm build && pnpm start` itself — **do not build first**. Two prerequisites, both measured: a **seeded** database (the suite signs a visitor in through "Continue as demo", which resolves the FR-036 demo user, so run `pnpm db:seed` first) and a **`SESSION_SECRET` ≥ 32 chars in `.env.local`** (without it the sign-in action throws and 10 of 16 tests fail). CI satisfies both: a `pnpm db:seed` step and a workflow-level `SESSION_SECRET` in `.github/workflows/ci.yml` |
 | Build | `pnpm build` | `next build` |
 | Start (production) | `pnpm start` | `next start`; required by the e2e `webServer` and by every production-mode check |
 | Migrate (dev) | `pnpm db:migrate --name <name>` | `prisma migrate dev`. In Prisma 7 it no longer runs `generate` or the seed, and without `--name` it prompts interactively |

@@ -200,7 +200,7 @@ Template D.21 · Sprint Profile · Planner, 2026-11-09 22:4x ET · Branch `feat/
 
 ### Phase 3 — gate, deploy, close
 
-- [ ] **T-14** — **Full local gate and the documentation debts.** Run the complete gate and paste
+- [x] **T-14** — **Full local gate and the documentation debts.** Run the complete gate and paste
   every output. Update `docs/traceability.md` with AC-001-01…24 → test rows; amend
   `docs/domain/model.md` with the one-line ACH/wire-inflow clarification (**ASM-001-06** — a spec may
   not overrule a documented invariant without amending it); amend `docs/adr/0002-stack-and-versions.md`
@@ -492,3 +492,55 @@ AC-000-12a).
   `prisma migrate deploy`, because sign-in resolves the seeded demo user and `migrate deploy` does
   not seed. Without both, `AC-001-09` and every test that depends on `signIn` fail in CI while
   passing locally.
+- **CI carry-in ✅ `7604757`** (the Technical Director granted the Implementer explicit permission to
+  edit `.github/workflows/ci.yml`). Three fixes, each independently enough to redden CI:
+  (a) **workflow-level `SESSION_SECRET`** — a 47-character literal, deliberately **not** a GitHub
+  secret, with the reasoning in the file beside `DATABASE_URL`'s;
+  (b) a **`pnpm db:seed` step after `pnpm exec prisma migrate deploy`** in the `database` job;
+  (c) 🔴 **a third blocker found while verifying, not in the brief:** `esbuild@0.28.2` entered the
+  committed lockfile in 001 (transitive via `tsx` and vitest), and pnpm 11 exits **1** with
+  `ERR_PNPM_IGNORED_BUILDS` for any package whose lifecycle scripts it skipped without being told
+  to. Measured: `pnpm install --frozen-lockfile` → **exit 1** on a clean tree, which fails the
+  *first step of both jobs*. `esbuild: false` added to `pnpm-workspace.yaml`'s `allowBuilds` (an
+  explicit deny is the decision pnpm wants; esbuild's postinstall only links a binary pnpm already
+  installs as an optional platform package) → **exit 0**, lockfile unchanged.
+  YAML parse proof: `js-yaml` load → `env` keys `[DATABASE_URL, SESSION_SECRET,
+  COREPACK_ENABLE_DOWNLOAD_PROMPT, NEXT_TELEMETRY_DISABLED]`; `database` steps in order
+  `… | Apply migrations | Seed the demo workspace | Check 5 - integration tests | …`. The parser was
+  installed temporarily and removed; `package.json` and `pnpm-lock.yaml` are untouched.
+  `pnpm lint` with the edited file → **0**.
+- **T-14 ✅ `8095a97`** · Full local gate, every command executed on this tree:
+  `pnpm lint` → **0** ("All matched files use Prettier code style!") ·
+  `pnpm typecheck` → **0** ·
+  `pnpm test --coverage` → **0**, **6 files / 48 tests passed**, coverage **98.64 % stmts, 100 %
+  branches, 100 % lines** (only `errors.ts` below 100 % stmts, NFR-007's ≥ 80 % met) ·
+  `pnpm test:int` → **0**, **3 files / 19 tests passed** ·
+  `pnpm build` → **0**, 12 routes, middleware present ·
+  `pnpm test:e2e` → **0**, **16 passed / 0 failed, 30.6 s**.
+  **Two gate findings, both real and both now documented rather than worked around:**
+  (1) the e2e suite needs a **seeded** database — `pnpm db:seed` → exit 0, `content-hash
+  91bd39c0ffb1c349541a4eef34457a6e53e9e6449fd703f33961ca143850be44`, all five self-checks passed;
+  (2) it needs **`SESSION_SECRET` in `.env.local`**, which was absent: 10 of 16 tests failed with
+  `SESSION_SECRET is missing or shorter than 32 characters` from the production server. A local
+  32-byte secret was generated into the git-ignored `.env.local` (`git check-ignore` confirms
+  `.gitignore:8`). This is the same gap the CI fix closes, so the CI edit is now *proved* necessary
+  rather than argued. Both prerequisites are written into `AGENTS.md`'s `pnpm test:e2e` row.
+  **Documentation debts closed:** `docs/traceability.md` (FR-001…006, FR-036, FR-039 rows flipped to
+  their real AC ids and test paths, plus a new **AC coverage — feature 001** table for
+  AC-001-01…24 and refreshed BR-001/002/009/011 and NFR-005/009 rows) · `docs/domain/model.md`
+  (ASM-001-06 ACH/wire-inflow amendment on the `Transaction` invariant) ·
+  `docs/adr/0002-stack-and-versions.md` (**Amendment 2**: `tsx@4.23.15` — ASM-001-12's
+  pre-authorised fallback was the executed path — `lucide-react@1.70.0`, `radix-ui@1.8.1` (umbrella,
+  not per-primitive, correcting a plan assumption), `class-variance-authority@0.7.1`, `cn@0.5.2`
+  (which is why there is no `src/lib/utils.ts`), `tw-animate-css@1.4.0`, `next-themes@0.4.6`,
+  `@date-fns/tz@1.5.0`, and the deliberate removal of the `shadcn` CLI from `dependencies`;
+  **TD-008 partly closed**) · `docs/adr/0006-deployment-and-database-hosting.md` (**Amendment 1**:
+  pooled vs direct Neon strings, why `migrate` cannot run through PgBouncer, and why T-15 is
+  human-gated) · `docs/roadmap.md` (TD-011, TD-012, TD-013 added; TD-008 → 🟡 partly closed; 001's
+  status set; new "Carry-ins from the 000 validation closed in 001" table recording the `/_dev/boom`
+  gating and the `src/app/icon.svg` favicon) · `AGENTS.md` (project status corrected — it still said
+  "no application code exists yet"; the unverified-versions row split into resolved vs still open;
+  the `pnpm install` row now records the `allowBuilds` decision; the `pnpm test:e2e` row records its
+  two prerequisites).
+  **Left open, deliberately:** AC-001-21 and AC-001-23 (🛑 T-15 / T-16, human-gated); TD-013
+  (AC-000-07 automation, 003 or 008); TD-008's `@axe-core/playwright` (003) and `sonner` (005).

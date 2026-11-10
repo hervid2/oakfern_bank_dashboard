@@ -18,13 +18,13 @@
 
 | FR | BR | Spec | AC | Test(s) | Status |
 |---|---|---|---|---|---|
-| FR-001 | — | 001 | AC-001-xx | `tests/e2e/demo-login.spec.ts` | ⬜ |
-| FR-002 | BR-009 | 001 | AC-001-xx | `tests/integration/auth-scope.test.ts` | ⬜ |
-| FR-003 | — | 001 | AC-001-xx | `tests/e2e/demo-login.spec.ts` | ⬜ |
-| FR-003b | BR-006 | 001 | AC-001-xx | `tests/integration/auth-scope.test.ts` | ⬜ |
-| FR-004 | — | 001 | AC-001-xx | `tests/e2e/shell.spec.ts` | ⬜ |
-| FR-005 | — | 001 | AC-001-xx | `tests/e2e/shell.spec.ts` | ⬜ |
-| FR-006 | — | 001 | AC-001-xx | `tests/e2e/responsive.spec.ts` | ⬜ |
+| FR-001 | — | 001 | AC-001-09 | `tests/e2e/shell.spec.ts` · `tests/unit/session.test.ts` | ✅ |
+| FR-002 | BR-009 | 001 | AC-001-10 | `tests/integration/scoping.test.ts` · `tests/helpers/db.ts` (two-business fixture) | ✅ |
+| FR-003 | — | 001 | AC-001-11 | `tests/e2e/shell.spec.ts` | ✅ |
+| FR-003b | BR-006 | 001 | AC-001-12, AC-001-17 | `tests/unit/session.test.ts` · `tests/integration/scoping.test.ts` | ✅ |
+| FR-004 | — | 001 | AC-001-13 | `tests/e2e/shell.spec.ts` | ✅ |
+| FR-005 | — | 001 | AC-001-14 | `tests/e2e/shell.spec.ts` | ✅ |
+| FR-006 | — | 001 | AC-001-15 | `tests/e2e/shell.spec.ts` (375 / 768 / 1280 / 1440 px; no separate `responsive.spec.ts` in 001 — 003 adds one) | ✅ |
 | FR-007 | BR-001, BR-002 | 002 | AC-002-xx | `tests/unit/domain/balances.test.ts` · `tests/e2e/home.spec.ts` | ⬜ |
 | FR-008 | BR-008, BR-009, BR-011 | 002 | AC-002-xx | `tests/unit/domain/metrics.test.ts` | ⬜ |
 | FR-009 | BR-001, BR-002 | 002 | AC-002-xx | `tests/unit/domain/balances.test.ts` | ⬜ |
@@ -58,14 +58,46 @@
 | FR-033 | BR-010 | 006 | AC-006-xx | `tests/e2e/cards.spec.ts` | ⬜ |
 | FR-034 | BR-010 | 006 | AC-006-xx | `tests/integration/cards.test.ts` | ⬜ |
 | FR-035 | BR-001, BR-009, BR-010 | 006 | AC-006-xx | `tests/unit/domain/cards.test.ts` | ⬜ |
-| FR-036 | BR-001, BR-004, BR-008, BR-009 | 001 | AC-001-xx | `tests/integration/seed.test.ts` | ⬜ |
+| FR-036 | BR-001, BR-004, BR-008, BR-009 | 001 | AC-001-02, AC-001-03, AC-001-04, AC-001-05, AC-001-06, AC-001-07 | `tests/integration/seed.test.ts` · `tests/unit/{money,balances,time}.test.ts` | ✅ |
 | FR-037 | — | 008 | AC-008-xx | `tests/integration/reset-demo.test.ts` | ⬜ |
 | FR-038 | — | 000 | AC-000-06, AC-000-07, AC-000-12a, AC-000-12b (deferred) | `tests/e2e/health.spec.ts`, `tests/integration/health.test.ts` | 🟡 |
-| FR-039 | — | 000 (root shell), 001, 007 | AC-000-08 (root `error.tsx` + `not-found.tsx`), AC-001-xx, AC-007-xx | AC-000-08 manually evidenced in `specs/000-walking-skeleton/validation.md` (no automated test); `tests/e2e/shell.spec.ts` planned in 001 (T-13) | 🟡 |
+| FR-039 | — | 000 (root shell), 001, 007 | AC-000-08 (root `error.tsx` + `not-found.tsx`), AC-001-16, AC-001-17, AC-001-18, AC-001-24 | `tests/e2e/shell.spec.ts` — now automated: the `(app)` `error.tsx` via the gated `/_dev/shell-boom` probe, the shell 404, the per-route `loading.tsx` skeletons, and the AC-001-24 production gating of `/_dev/boom`. AC-000-08's root boundary stays manually evidenced in `specs/000-walking-skeleton/validation.md` | ✅ |
 | FR-040 | — | 007 (Could) | AC-007-xx | `tests/e2e/command-palette.spec.ts` | ⬜ |
 | FR-041 | — | 002 (Could) | AC-002-xx | `tests/e2e/account-detail.spec.ts` | ⬜ |
 | FR-042 | — | 007 (Could) | AC-007-xx | `tests/integration/api-v1.test.ts` | ⬜ |
 | FR-043 | — | 008 | AC-008-xx | Manual checklist (KICKOFF §9) + `tests/e2e/smoke-production.spec.ts` | ⬜ |
+
+## AC coverage — feature 001 (domain, data and shell)
+
+Filled in by the Implementer at 001 T-14 from the executed suites. Every test title carries its
+`AC` id, so `grep -rn 'AC-001-' tests/` reproduces this table.
+
+| AC | Test(s) | Status |
+|---|---|---|
+| AC-001-01 | `prisma/migrations/20261110034318_domain_model/migration.sql` applied by `pnpm exec prisma migrate deploy`; `pnpm exec prisma migrate status` → all applied, no drift (evidence in `tasks.md` T-03) | ✅ |
+| AC-001-02 | `tests/unit/money.test.ts` · `tests/integration/seed.test.ts` · `grep -Ei '(double precision\|numeric\|real\|decimal)' prisma/migrations/*/migration.sql` → empty | ✅ |
+| AC-001-03 | `tests/integration/seed.test.ts` (same-day `content-hash` equality) | ✅ |
+| AC-001-04 | `tests/integration/seed.test.ts` (row counts) | ✅ |
+| AC-001-05 | `tests/unit/balances.test.ts` · `tests/unit/money.test.ts` · `tests/integration/seed.test.ts` | ✅ |
+| AC-001-06 | `tests/integration/seed.test.ts` (BR-011 internal legs) | ✅ |
+| AC-001-07 | `tests/unit/time.test.ts` (all four BR-009 examples) · `tests/integration/seed.test.ts` | ✅ |
+| AC-001-08 | `pnpm db:seed` self-check 5 (runway), exit 0 — the seed fails the run rather than print a bad figure | ✅ |
+| AC-001-09 | `tests/e2e/shell.spec.ts` · `tests/e2e/health.spec.ts` · `tests/unit/session.test.ts` | ✅ |
+| AC-001-10 | `tests/integration/scoping.test.ts` against the two-business fixture in `tests/helpers/db.ts` | ✅ |
+| AC-001-11 | `tests/e2e/shell.spec.ts` | ✅ |
+| AC-001-12 | `tests/unit/session.test.ts` (expired `exp`) | ✅ |
+| AC-001-13 | `tests/e2e/shell.spec.ts` | ✅ |
+| AC-001-14 | `tests/e2e/shell.spec.ts` (no-flash dark boot) | ✅ |
+| AC-001-15 | `tests/e2e/shell.spec.ts` (375 / 768 / 1280 / 1440 px) | ✅ |
+| AC-001-16 | `tests/e2e/shell.spec.ts` via the gated `/_dev/shell-boom` probe | ✅ |
+| AC-001-17 | `tests/e2e/shell.spec.ts` · `tests/integration/scoping.test.ts` | ✅ |
+| AC-001-18 | `tests/e2e/shell.spec.ts` (per-route `loading.tsx` skeletons) | ✅ |
+| AC-001-19 | `tests/unit/session.test.ts` (missing and <32-character secret) | ✅ |
+| AC-001-20 | Documentation AC, no automated test: `AGENTS.md`'s command table, `.env.example` and this file, each row executed in 001 T-02 and re-confirmed at T-14 | ✅ |
+| AC-001-21 | 🛑 Human-gated (T-15, writes to Neon) — **not verified by an agent** | ⬜ |
+| AC-001-22 | `tests/unit/client.test.ts` plus the measured `pg_stat_activity` counts in `tasks.md` T-01 | ✅ |
+| AC-001-23 | 🛑 Human-gated (T-16, Vercel Preview on 001's PR head) — **not verified by an agent** | ⬜ |
+| AC-001-24 | `tests/e2e/shell.spec.ts` (`/_dev/boom` → 404 in a production build without `OAKFERN_ENABLE_DEV_ROUTES=1`) | ✅ |
 
 ## BR coverage
 
@@ -74,17 +106,17 @@ the edge case (`docs/requirements/business-rules.md`).
 
 | BR | Spec(s) | Primary test file | Status |
 |---|---|---|---|
-| BR-001 Integer cents | 001, 003, 005 | `tests/unit/domain/money.test.ts` | ⬜ |
-| BR-002 Balance definitions + invariant | 002, 005 | `tests/unit/domain/balances.test.ts` · `tests/integration/invariant.test.ts` | ⬜ |
+| BR-001 Integer cents | 001, 003, 005 | `tests/unit/money.test.ts` (001 — the file is `tests/unit/`, not `tests/unit/domain/`) | 🟡 001 green |
+| BR-002 Balance definitions + invariant | 001, 002, 005 | `tests/unit/balances.test.ts` + `tests/integration/seed.test.ts` (001) · `tests/integration/invariant.test.ts` (005) | 🟡 001 green |
 | BR-003 Internal transfer validity and atomicity | 005 | `tests/unit/domain/transfer-rules.test.ts` · `tests/integration/transfer.test.ts` | ⬜ |
 | BR-004 Simulated settlement | 005 | `tests/integration/settlement.test.ts` | ⬜ |
 | BR-005 Cancel pending | 005 | `tests/integration/cancel-payment.test.ts` | ⬜ |
 | BR-006 Idempotency | 005 | `tests/integration/idempotency.test.ts` | ⬜ |
 | BR-007 Limits | 005 | `tests/unit/domain/transfer-rules.test.ts` · `tests/integration/daily-limit.test.ts` | ⬜ |
 | BR-008 Burn and runway | 002, 004 | `tests/unit/domain/metrics.test.ts` | ⬜ |
-| BR-009 Time zone and ranges (incl. both DST changes) | 001–005 | `tests/unit/domain/time.test.ts` | ⬜ |
+| BR-009 Time zone and ranges (incl. both DST changes) | 001–005 | `tests/unit/time.test.ts` | 🟡 001 green |
 | BR-010 Card status and limit | 006 | `tests/unit/domain/cards.test.ts` | ⬜ |
-| BR-011 Internal transfers excluded from metrics | 002, 004 | `tests/unit/domain/metrics.test.ts` | ⬜ |
+| BR-011 Internal transfers excluded from metrics | 001 (seed legs), 002, 004 | `tests/integration/seed.test.ts` (001) · `tests/unit/domain/metrics.test.ts` (002) | 🟡 001 green |
 
 ## NFR coverage
 
@@ -94,11 +126,11 @@ the edge case (`docs/requirements/business-rules.md`).
 | NFR-002 Query p95 < 300 ms | 003 | Timing assertion in `tests/integration/transactions-query.test.ts` + index verification | ⬜ |
 | NFR-003 Accessibility | 003, 005, 007 | `@axe-core/playwright` output | ⬜ |
 | NFR-004 Responsive viewports | 003, 007 | `tests/e2e/responsive.spec.ts` + screenshots | ⬜ |
-| NFR-005 Security | 001, 003, 005 | `tests/integration/auth-scope.test.ts`, `csv-export.test.ts`, Reviewer C checklist | ⬜ |
+| NFR-005 Security | 001, 003, 005 | `tests/integration/scoping.test.ts` (001, anti-IDOR, green) · `csv-export.test.ts` (003) · Reviewer C checklist | 🟡 001 green |
 | NFR-006 Reliability (atomic, idempotent, invariant) | 005 | `tests/integration/{transfer,idempotency,concurrency,invariant}.test.ts` | ⬜ |
 | NFR-007 Maintainability (strict, lint, coverage >= 80 %) | 000 onward | CI job output | ⬜ |
 | NFR-008 Browsers (chromium + webkit) | 007 | Playwright project matrix in CI | ⬜ |
-| NFR-009 Observability (money log, health, error pages) | 000, 005, 007 | Log sample + `tests/e2e/health.spec.ts` | ⬜ |
+| NFR-009 Observability (money log, health, error pages) | 000, 001, 005, 007 | `tests/e2e/health.spec.ts` · `tests/e2e/shell.spec.ts` error/404/loading states (001) | 🟡 001 green |
 | NFR-010 Usability (empty/loading/error, confirmations) | 002, 003, 005, 007 | Reviewer B walkthrough screenshots | ⬜ |
 | NFR-011 Consistency (one source per figure) | 002, 004 | `tests/unit/domain/metrics.test.ts` agreement assertions + Reviewer A trace | ⬜ |
 
