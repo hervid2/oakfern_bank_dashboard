@@ -3,9 +3,17 @@
 # allowBuilds is pnpm 11's install-script allowlist (pnpm 10 called it
 # onlyBuiltDependencies). Prisma needs it to place its query engine binaries;
 # nothing else in the tree may run lifecycle scripts.
+# An explicit `false` is a *decision*, not a default: pnpm 11 exits 1 with
+# ERR_PNPM_IGNORED_BUILDS on `pnpm install --frozen-lockfile` for any package
+# whose lifecycle scripts it skipped without being told to. esbuild arrived in
+# 001 as a transitive dependency of tsx (the seed runner) and vitest; its
+# postinstall only links the platform binary, which pnpm already installs as the
+# @esbuild/<platform> optional package, so denying it is correct -- and saying so
+# here is what keeps CI's install step at exit 0.
 allowBuilds:
   '@prisma/engines': true
   prisma: true
+  esbuild: false
 
 # next@16.4.6 and its platform packages are newer than pnpm 11's default
 # minimumReleaseAge gate. They are the ADR-0002 pins, verified on the npm
