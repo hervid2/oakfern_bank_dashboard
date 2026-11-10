@@ -121,9 +121,18 @@ test.describe('shell', () => {
     await expect(page.locator('[aria-current="page"]')).toHaveCount(1);
     await expect(page.locator('[aria-current="page"]')).toHaveText('Transactions');
 
-    // The user menu names the seeded user; the CTA has an accessible name.
+    // The user menu names the seeded user.
     await expect(page.getByRole('button', { name: `Account: ${DEMO_USER_NAME}` })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Move money', exact: true }).last()).toBeVisible();
+
+    // OQ-002-03 was resolved "no primary CTA that leads nowhere": `/move-money`
+    // is a placeholder while 005 is cut, so the topbar carries no "Move money"
+    // call-to-action. The *navigation* item stays — that resolution allows it —
+    // so the one remaining link is the sidebar's.
+    await expect(
+      page.getByRole('banner').getByRole('link', { name: 'Move money', exact: true }),
+    ).toHaveCount(0);
+    await expect(page.getByRole('link', { name: 'Move money', exact: true })).toHaveCount(1);
+    await expect(nav.getByRole('link', { name: 'Move money', exact: true })).toBeVisible();
   });
 
   test('AC-001-14: a dark OS preference renders dark before the first paint, and the toggle survives a reload', async ({
