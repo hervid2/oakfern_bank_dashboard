@@ -9,7 +9,9 @@ At 08:40 there are **~9 h 20** left for: finishing 001, then 002, 003, 005, 008 
 and a 🚦 G-Merge each. **Calibration that matters:** 000's box was 1 h 45 and actual implementation
 ~1 h 25 (≈ 0.8 of box). Planner *task* estimates run ≈ 0.43 of raw; roadmap *boxes* run ≈ 0.8.
 Projected remainder ≈ 7 h work + ~1 h validation ≈ **8 h against 9 h 20**.
-**HARD CHECKPOINT: if 001 is not merged by ~11:00, cut feature 005 entirely.**
+**CHECKPOINT MISSED → acted on.** 2026-11-10 11:50: **005 CUT entirely**; **008 starts at 16:15 ET**
+regardless of where 003 is — a clock rule, not an estimate. Delivers **2 of 5** areas: accounts + transactions.
+**The 0.43 calibration did NOT hold for UI work** (T-10…T-13 ran 3× its estimate). Do not trust it again.
 Human is on a **Pro ($20) plan** — two agents were already killed by session limits. Be economical.
 
 ## Where 001 stands

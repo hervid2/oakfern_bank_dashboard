@@ -38,6 +38,27 @@ evaluator wonder.
 - **SP-5 downgraded to a single `combined` reviewer for every feature**, replacing the three parallel
   reviewers previously required for 002–005.
 
+
+### Second cut — delivery day, 2026-11-10 11:50 ET
+
+The 11:00 checkpoint recorded in `MEMORY.md` was missed: feature 001's UI block (T-10…T-13) ran
+**2 h 40 against a ~56 min calibrated estimate**, roughly 3×, for two documented reasons — the
+shadcn 4.23 CLI resolving a different dependency set than the plan assumed, and a measured Next.js
+behaviour where `loading.tsx` beside a catch-all flushed the Suspense shell and answered **200 with
+404 content**, fixed with URL-neutral `(section)` route groups. At 11:50 there were 6 h 10 left
+against roughly 8 h of remaining work.
+
+**Decided by the Technical Director:**
+- **005 `move-money` is CUT entirely.** The 0.43 calibration factor that justified keeping it did not
+  survive contact with UI work.
+- **Feature 008 `ship` starts at 16:15 ET regardless of where 003 has reached.** This is a clock
+  rule, not an estimate: without a README and a verified production deployment nothing else can be
+  evaluated, so 008 is protected ahead of any remaining feature work.
+- 003 is reduced further if needed to respect that boundary.
+
+**Delivered areas: 2 of the 5 the case names** — accounts and transactions. Money movement, cash
+insights and cards are consciously out, and the README must say so plainly, with the reason.
+
 ## Features
 
 | Spec | Feature | FRs covered | CR | Priority | Depends on | Timebox | Validation (SP-5) | Status |
@@ -47,7 +68,7 @@ evaluator wonder.
 | 002 | `account-overview` — KPIs (total cash, 30-day in/out, net burn, runway), account cards, pending payments, recent transactions, cash sparkline | FR-007…FR-012b | CR-2 | Must | 001 | **2 h** | 3 reviewers in parallel | Not started |
 | 003 | `transactions` — search, combinable filters, sorting, server-side pagination with URL state, side detail panel, recategorize + note (Should), CSV export (Should) · **plus the NFR-003 a11y entry point deferred from 000: install `@axe-core/playwright` (TD-008, verify at install time) and run the axe scan over `/` as well as UI-03, including the >= 4.5:1 contrast check on the `/` placeholder if it still exists** | FR-013…FR-020b + NFR-003 | CR-3 | Must | 001 | **3 h** | 3 reviewers in parallel | Not started |
 | ~~004~~ | **CUT 2026-11-09.** ~~`cash-insights` — monthly cash flow, balance over time, spending by category, period selector, drill-down to transactions | FR-021…FR-025 | CR-4 | Must | 002, 003 | **2 h 15 min** | 3 reviewers in parallel | Not started |
-| 005 | `move-money` — internal transfer + ACH/wire payment + recipients + review step + idempotency + simulated settlement + cancel pending | FR-026…FR-032 | CR-5 | Must | 002 | **3 h** | 3 reviewers in parallel | Not started |
+| ~~005~~ | **CUT 2026-11-10.** ~~`move-money` — internal transfer + ACH/wire payment + recipients + review step + idempotency + simulated settlement + cancel pending | FR-026…FR-032 | CR-5 | Must | 002 | **3 h** | 3 reviewers in parallel | Not started |
 | ~~006~~ | **CUT 2026-11-09.** ~~`cards` — list, freeze/unfreeze, monthly limit and usage | FR-033…FR-035 | CR-5 | Should | 001 | **1 h 15 min** | 1 reviewer, `combined` | Not started |
 | ~~007~~ | **DISSOLVED into 008, 2026-11-09.** ~~`polish` — a11y and responsive audit, empty/loading/error states sweep, performance (Lighthouse on a warmed deployment), command palette (Could), read-only API (Could) | FR-039, FR-040, FR-042 + NFR-001, NFR-003, NFR-004, NFR-008, NFR-010 | CR-1 | Must | 002–006 | **1 h 30 min** | 1 reviewer, `combined` | Not started |
 | 008 | `ship` — README with architecture and the AI-assisted workflow, light/dark screenshots, demo reset, production verification, submission email draft | FR-037, FR-043 | CR-7 | Must | all | **1 h** | 1 reviewer, `combined` | Not started |
