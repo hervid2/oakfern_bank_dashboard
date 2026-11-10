@@ -21,14 +21,24 @@ export type HealthResult =
  * Pure mapper from a ping outcome to the HTTP result. `now` is a parameter so
  * the unit test is deterministic and no `new Date()` hides inside the mapping.
  *
- * Intentionally unimplemented: task T-05 ships the signature so T-06 can write
- * the unit test and watch it fail before the body exists.
+ * The returned bodies are built as closed literals: the key sets of spec §8.1
+ * are frozen, so nothing is spread in and no field can leak a connection
+ * string, a host name or an error message (AC-000-04, AC-000-07).
  */
 export function buildHealthResult(ping: PingResult, now: Date): HealthResult {
-  void ping;
-  void now;
+  const timestamp = now.toISOString();
 
-  throw new Error('not implemented');
+  if (!ping.reachable) {
+    return {
+      status: 503,
+      body: { status: 'degraded', database: 'unreachable', timestamp },
+    };
+  }
+
+  return {
+    status: 200,
+    body: { status: 'ok', database: 'ok', latencyMs: ping.latencyMs, timestamp },
+  };
 }
 
 /**
