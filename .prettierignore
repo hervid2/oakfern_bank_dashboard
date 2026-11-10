@@ -1,0 +1,20 @@
+# Dependencies, build output and generated code
+node_modules/
+.next/
+out/
+build/
+next-env.d.ts
+src/generated/
+pnpm-lock.yaml
+
+# Test and tooling output
+coverage/
+playwright-report/
+test-results/
+.playwright-mcp/
+
+# Prose is hand-authored and tabled by hand; Prettier would reflow it.
+**/*.md
+
+# Generated from .harness/mcp.md §2 — not Prettier's to reformat.
+.mcp.json

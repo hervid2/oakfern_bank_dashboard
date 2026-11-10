@@ -1,0 +1,24 @@
+// Oakfern schema — feature 000 (walking skeleton).
+//
+// Prisma 7 shape (plan.md §3, §7.2):
+//   - the datasource has NO `url`; it is resolved in `prisma.config.ts`;
+//   - the generator is `prisma-client` with an explicit `output`, and the
+//     client is imported from that folder, not from `@prisma/client`.
+
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+/// Throwaway table that proves migrate + generate + connect agree (AC-000-05,
+/// AC-000-10). No business code references it and it has NO numeric column, so
+/// BR-001 (money is integer cents) cannot be pre-violated. Feature 001's
+/// migration supersedes or removes it (ASM-023).
+model SkeletonCheck {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+}

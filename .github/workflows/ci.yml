@@ -1,0 +1,162 @@
+# ---------------------------------------------------------------------------
+# Oakfern CI (AC-000-11, plan.md §4.5).
+#
+# Cut C1, taken by the Technical Director at the 2026-11-09 G-SpecPlan gate:
+# TWO jobs instead of six. AC-000-11 was amended to require the six *checks*
+# green, not six jobs:
+#
+#   verify   -> lint, typecheck, unit tests, production build   (4 checks)
+#   database -> integration tests, end-to-end tests             (2 checks)
+#
+# Two jobs prove exactly the same thing as six and debug faster, because the
+# database jobs no longer have to ship `.next` between runners.
+# ---------------------------------------------------------------------------
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # NOT A SECRET, and deliberately not a GitHub secret (AC-000-13): a literal
+  # localhost connection string for the `postgres:18` service container, with
+  # the same local-only development credentials as docker-compose.yml.
+  #
+  # This MUST live at WORKFLOW level, not only on the `database` job. Proved by
+  # execution in T-04: `postinstall` runs `prisma generate`, which loads
+  # `prisma.config.ts`, which resolves `datasource.url: env('DATABASE_URL')`.
+  # With the variable unset, `pnpm install --frozen-lockfile` aborts with
+  # `PrismaConfigEnvError: Cannot resolve environment variable: DATABASE_URL`
+  # on EVERY job -- including `verify`, which otherwise needs no database.
+  # In CI the service container listens on the ordinary 5432; host port 5433 in
+  # docker-compose.yml is a local-Windows workaround only (a native
+  # postgresql-x64-18 service owns 5432 on the developer's machine).
+  DATABASE_URL: 'postgresql://oakfern:oakfern_local_dev@localhost:5432/oakfern?schema=public'
+  # corepack must never stop to ask whether it may download pnpm.
+  COREPACK_ENABLE_DOWNLOAD_PROMPT: '0'
+  NEXT_TELEMETRY_DISABLED: '1'
+
+jobs:
+  # -------------------------------------------------------------------------
+  # Checks 1-4: lint, typecheck, unit, build. No database server is reachable
+  # here, and none is needed: `prisma generate` only reads the config.
+  # -------------------------------------------------------------------------
+  verify:
+    name: verify (lint, typecheck, unit, build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Node 22.17.0
+        uses: actions/setup-node@v7
+        with:
+          # Exact patch, matching .nvmrc. This is what makes `.npmrc`'s
+          # engine-strict=true safe in CI against `engines.node: ^22.17.0`.
+          node-version: '22.17.0'
+
+      - name: Activate pnpm 11.28.9 via corepack
+        # corepack reads `packageManager` from package.json, so the pnpm
+        # version can never drift from the repository pin.
+        run: |
+          corepack enable
+          corepack prepare --activate
+          node -v
+          pnpm -v
+
+      - name: Install dependencies
+        # No --ignore-scripts: `postinstall` -> `prisma generate` must run, and
+        # pnpm must honour `allowBuilds` in pnpm-workspace.yaml (pnpm 11's name
+        # for pnpm 10's onlyBuiltDependencies) or Prisma's query engines are
+        # never placed. That file is committed, so pnpm picks it up here with
+        # no extra flag -- it only has to stay un-overridden.
+        run: pnpm install --frozen-lockfile
+
+      - name: Check 1 - lint (eslint + prettier)
+        run: pnpm lint
+
+      - name: Check 2 - typecheck
+        run: pnpm typecheck
+
+      - name: Check 3 - unit tests
+        run: pnpm test
+
+      - name: Check 4 - production build
+        run: pnpm build
+
+  # -------------------------------------------------------------------------
+  # Checks 5-6: integration and end-to-end, against a real PostgreSQL 18.
+  # -------------------------------------------------------------------------
+  database:
+    name: database (integration, e2e)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: oakfern
+          POSTGRES_PASSWORD: oakfern_local_dev
+          POSTGRES_DB: oakfern
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U oakfern -d oakfern"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Node 22.17.0
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22.17.0'
+
+      - name: Activate pnpm 11.28.9 via corepack
+        run: |
+          corepack enable
+          corepack prepare --activate
+          node -v
+          pnpm -v
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply migrations
+        # `migrate deploy`, NEVER `migrate dev`: deploy only applies committed
+        # migrations and never creates or resets anything. Required before both
+        # checks below -- the integration test asserts a real `SkeletonCheck`
+        # table and the e2e health test asserts a 200 from /api/health.
+        run: pnpm exec prisma migrate deploy
+
+      - name: Check 5 - integration tests
+        run: pnpm test:int
+
+      - name: Install Playwright chromium + OS deps
+        # `pnpm exec` (not `npx`) so the browser matches the locked
+        # @playwright/test 1.65.0 instead of whatever npx would resolve.
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Check 6 - end-to-end tests
+        # Self-contained: playwright.config.ts's webServer runs
+        # `pnpm build && pnpm start`, and under CI it sets
+        # reuseExistingServer: false, workers: 1, retries: 1, forbidOnly: true.
+        # So no separate build step and no artifact hand-off is needed.
+        run: pnpm test:e2e
+
+      - name: Upload Playwright report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+          if-no-files-found: warn
