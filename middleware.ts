@@ -20,8 +20,15 @@ import { SESSION_COOKIE, verifySession } from '@/lib/session';
  * `signSession` throws the named error AC-001-19 asks for.
  */
 
-/** The `(app)` route group. Kept in sync with `src/components/shell/nav-items.ts`. */
-const PROTECTED_PREFIXES = ['/home', '/transactions', '/accounts', '/payments', '/cards'] as const;
+/**
+ * The `(app)` route group. Kept in sync with `src/components/shell/nav-items.ts`
+ * — three sections since cut C1 (amended AC-001-13), not FR-004's five.
+ *
+ * A path that is *not* listed here is still protected: `(app)/layout.tsx` calls
+ * `requireSession()` and redirects. The list only decides what gets bounced
+ * before any rendering happens.
+ */
+const PROTECTED_PREFIXES = ['/home', '/transactions', '/move-money'] as const;
 
 const isProtected = (pathname: string): boolean =>
   PROTECTED_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));

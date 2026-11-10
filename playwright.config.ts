@@ -37,6 +37,14 @@ export default defineConfig({
   webServer: {
     command: 'pnpm build && pnpm start',
     url: BASE_URL,
+    /**
+     * The error-boundary probes are gated out of production builds (AC-001-24)
+     * and this server *is* a production build, so the suite that verifies the
+     * boundaries (AC-000-08, AC-001-16) opts its own server in. Nothing else
+     * sets this, which is why `curl` against a plain `pnpm start` still gets a
+     * 404 — see `src/lib/dev-routes.ts`.
+     */
+    env: { OAKFERN_ENABLE_DEV_ROUTES: '1' },
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,
     stdout: 'pipe',
