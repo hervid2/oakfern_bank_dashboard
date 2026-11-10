@@ -509,7 +509,7 @@ AC-000-12a).
   `… | Apply migrations | Seed the demo workspace | Check 5 - integration tests | …`. The parser was
   installed temporarily and removed; `package.json` and `pnpm-lock.yaml` are untouched.
   `pnpm lint` with the edited file → **0**.
-- **T-14 ✅ `8095a97`** · Full local gate, every command executed on this tree:
+- **T-14 ✅ `7e3425f`** · Full local gate, every command executed on this tree:
   `pnpm lint` → **0** ("All matched files use Prettier code style!") ·
   `pnpm typecheck` → **0** ·
   `pnpm test --coverage` → **0**, **6 files / 48 tests passed**, coverage **98.64 % stmts, 100 %
