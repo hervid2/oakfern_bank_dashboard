@@ -157,6 +157,30 @@ describe('getOverview against the seeded workspace', () => {
   });
 });
 
+describe('internal transfer legs in the recent list (BR-011)', () => {
+  it('AC-002-25: an internal leg is shown, flagged and labelled — BR-011 excludes it from metrics, not from lists', async () => {
+    const overview = await getOverview(fixture.a.businessId, new Date('2026-11-10T17:00:00.000Z'));
+    const internal = overview.recentTransactions.filter((row) => row.isInternal);
+
+    // The 001 fixture writes one internal pair, so both legs must surface.
+    expect(internal).toHaveLength(2);
+
+    for (const leg of internal) {
+      expect(leg.method).toBe('internal');
+      expect(leg.label).toBe('Internal transfer');
+      // BR-011: an internal leg is never categorised.
+      expect(leg.categoryLabel).toBeNull();
+    }
+
+    // And they are excluded from the metrics over the same period.
+    const window = lastNDaysRange(new Date('2026-11-10T17:00:00.000Z'), 30);
+    const rows = await listPostedFlowRows(fixture.a.businessId, window);
+
+    expect(rows.filter((row) => row.method === 'internal')).toHaveLength(2);
+    expect(overview.last30Days).toEqual({ inflowCents: 250_000, outflowCents: 40_000 });
+  });
+});
+
 describe('getOverview on an empty workspace', () => {
   it('AC-002-27: a business with no accounts and no transactions returns zeros and the cash-flow-positive branch', async () => {
     const empty = await prisma.business.create({

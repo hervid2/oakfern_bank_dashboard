@@ -274,8 +274,11 @@ test.describe('shell', () => {
   test('AC-001-18: each placeholder route states what it does not yet do', async ({ page }) => {
     await signIn(page);
 
+    // Home is **no longer a placeholder**: feature 002 filled it with the real
+    // figures, so the 001 assertion on "No figures on this screen yet" was
+    // removed rather than weakened. What remains true of Home — one `<h1>`, a
+    // content-shaped skeleton — is asserted below and in `home.spec.ts`.
     await expect(page.getByRole('heading', { level: 1, name: 'Home' })).toBeVisible();
-    await expect(page.getByText('No figures on this screen yet')).toBeVisible();
 
     await page.goto('/transactions');
     await expect(page.getByRole('heading', { level: 1, name: 'Transactions' })).toBeVisible();

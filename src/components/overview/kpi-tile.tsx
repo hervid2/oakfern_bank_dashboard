@@ -17,9 +17,18 @@ export function KpiTile({
   readonly footnote: string;
 }) {
   return (
-    <div className="flex min-w-0 flex-col gap-1 rounded-[var(--radius)] border border-border p-4">
+    <div
+      data-testid="kpi-tile"
+      data-label={label}
+      className="flex min-w-0 flex-col gap-1 rounded-[var(--radius)] border border-border p-4"
+    >
       <p className="text-sm text-muted-foreground">{label}</p>
-      <p className="truncate text-2xl font-semibold tracking-tight tabular-nums">{value}</p>
+      <p
+        data-testid="kpi-value"
+        className="truncate text-2xl font-semibold tracking-tight tabular-nums"
+      >
+        {value}
+      </p>
       <p className="text-xs text-muted-foreground">{footnote}</p>
     </div>
   );
