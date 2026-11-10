@@ -61,8 +61,9 @@ Authoritative pins are in **ADR-0002** (`docs/adr/0002-stack-and-versions.md`). 
 | Unverified on purpose | `@axe-core/playwright`, `@date-fns/tz`, `lucide-react`, `sonner` — the Implementer verifies each against the registry at install time (Art. 14) and records the resolved version in the feature's `plan.md`. |
 
 ## Project commands
-> Every row below has been executed in this repository (001 T-02; exit statuses in
-> `specs/001-domain-data-shell/tasks.md`). Nothing in this table is aspirational.
+> Every row below has been executed in this repository (001 T-02 and T-06; exit statuses in
+> `specs/001-domain-data-shell/tasks.md`). Nothing in this table is aspirational. The single
+> exception is flagged inline: `pnpm db:reset` is agent-blocked by Prisma and needs a human.
 
 | Action | Command | What it actually does |
 |---|---|---|
@@ -77,7 +78,8 @@ Authoritative pins are in **ADR-0002** (`docs/adr/0002-stack-and-versions.md`). 
 | Start (production) | `pnpm start` | `next start`; required by the e2e `webServer` and by every production-mode check |
 | Migrate (dev) | `pnpm db:migrate --name <name>` | `prisma migrate dev`. In Prisma 7 it no longer runs `generate` or the seed, and without `--name` it prompts interactively |
 | Generate client | `pnpm db:generate` | `prisma generate` |
-| Seed | `pnpm db:seed` | The FR-036 deterministic demo seed as of feature 001. **Before 001 lands it is a stub that exits 1 on purpose** |
+| Seed | `pnpm db:seed` | `tsx prisma/seed.ts` — the FR-036 deterministic demo seed. Replaces the whole demo workspace, runs five self-checks (BR-002 balances, BR-011 internal legs, `int4` range, volumes, runway) and prints a SHA-256 `content-hash`. **Exits 1 on any failed check**, so a seeded database is never left as "fine". Two runs on the same ET day print the same hash |
+| Reset (local only) | `pnpm db:reset` | `prisma migrate reset --force` — drops, re-migrates and re-seeds the local Compose database. **Never point this at Neon.** ⚠️ The only row in this table not executed by an agent: Prisma 7 refuses `migrate reset` when it detects an AI agent and demands explicit human consent, which is the right default. A human must run it |
 
 `gh` is **not installed** (OQ-007): pull requests are created through the GitHub web UI. The
 repository URL is recorded in `MEMORY.md` — use that value, do not retype it from memory.
