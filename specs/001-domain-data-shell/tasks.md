@@ -22,7 +22,7 @@ Template D.21 · Sprint Profile · Planner, 2026-11-09 22:4x ET · Branch `feat/
 
 ### Phase 0 — carry-ins from the 000 validation (before any new code)
 
-- [ ] **T-01** — 🔴 **Fix the measured production defect in the Prisma client singleton.** Add a
+- [x] **T-01** — 🔴 **Fix the measured production defect in the Prisma client singleton.** Add a
   **module-level `let client`** memo to `getPrismaClient()` in `src/server/repositories/client.ts`,
   keeping the existing `globalThis` branch for dev hot-reload only (plan §1.0a). **Nothing else in
   that file changes** — no `$disconnect`, no pool tuning (ASM-001-17). Write
@@ -36,7 +36,7 @@ Template D.21 · Sprint Profile · Planner, 2026-11-09 22:4x ET · Branch `feat/
   · **Verify:** `pnpm test` (red, then green) · `pnpm build && pnpm start` + the two
   `pg_stat_activity` counts · **Depends on:** — · **Est. 20 min**
 
-- [ ] **T-02** — **Documentation and template honesty sweep** (000 T-14, which never ran, plus 000
+- [x] **T-02** — **Documentation and template honesty sweep** (000 T-14, which never ran, plus 000
   validation §6 items 2 and 4). Correct `AGENTS.md`'s "Project commands" table exactly as
   `plan.md` §3.5 specifies: remove the ⚠️ UNVERIFIED block; add the missing **`pnpm start`** and
   **`pnpm db:generate`** rows; note that `pnpm lint` is `eslint . && prettier --check .`, that
@@ -53,7 +53,7 @@ Template D.21 · Sprint Profile · Planner, 2026-11-09 22:4x ET · Branch `feat/
 
 ### Phase 1 — backend core (the valuable half; finish this tonight)
 
-- [ ] **T-03** — **Schema + the one migration.** Replace `SkeletonCheck` in `prisma/schema.prisma`
+- [x] **T-03** — **Schema + the one migration.** Replace `SkeletonCheck` in `prisma/schema.prisma`
   with the 8 models and 8 enums of `plan.md` §3.1–§3.2, including all NFR-002 indexes, the
   `(businessId, idempotencyKey)` uniques, explicit relation names on `Transfer`'s two `Account`
   FKs, `onDelete: Cascade` from `Business` and `Restrict` from `Category`. Money columns are `Int`,
@@ -68,7 +68,7 @@ Template D.21 · Sprint Profile · Planner, 2026-11-09 22:4x ET · Branch `feat/
   `grep -Ei '(double precision|numeric|real|decimal)' prisma/migrations/*/migration.sql` → empty
   · **Depends on:** T-02 · **Est. 35 min**
 
-- [ ] **T-04** `[P]` — **Money primitives, test-first.** Write `tests/unit/money.test.ts` and
+- [x] **T-04** `[P]` — **Money primitives, test-first.** Write `tests/unit/money.test.ts` and
   `tests/unit/balances.test.ts` from the BR-001 and BR-002 example tables (every id in the title),
   **run them red and paste the output**, then implement `src/server/domain/money.ts`
   (`parseMoneyToCents`, `sumCents`, `assertSafeCents`, `directionOf`),
@@ -79,7 +79,7 @@ Template D.21 · Sprint Profile · Planner, 2026-11-09 22:4x ET · Branch `feat/
   `src/lib/format.ts`, `tests/unit/{money,balances}.test.ts` · **Verify:** `pnpm test` (red first,
   then exit 0) · `pnpm lint` (proves the domain stays pure) · **Depends on:** T-02 · **Est. 25 min**
 
-- [ ] **T-05** `[P]` — **Business time zone, test-first.** Install `date-fns@4.4.0` and
+- [x] **T-05** `[P]` — **Business time zone, test-first.** Install `date-fns@4.4.0` and
   `@date-fns/tz@1.5.0` (versions verified, plan §7.1). Write `tests/unit/time.test.ts` from the four
   BR-009 examples — the October-bucket case, the 23-hour spring DST day, the 25-hour autumn DST day
   and the exactly-30-buckets case — **run red**, then implement `src/server/domain/time.ts` with the
@@ -300,4 +300,39 @@ AC-000-12a).
 
 > The Implementer appends one line per task as it closes: `T-xx ✅ <commit hash> · <command> → <result>`.
 
-- _(empty — no task executed yet)_
+- **T-01 ✅ `eadd89c`** · `pnpm test tests/unit/client.test.ts` → red first (3 failed: **41** client
+  constructions across 20 property accesses), then **4 passed**; full `pnpm test` → **7 passed**.
+  Runtime measurement on the Compose database, `pnpm build && pnpm start`, 25× `GET /api/health`
+  (all `200`), `SELECT count(*) FROM pg_stat_activity WHERE datname='oakfern' AND
+  backend_type='client backend'`: **before the fix 1 → 26**, **after the fix 1 → 2** (the second
+  backend is the psql counting session itself). AC-001-22 met.
+- **T-02 ✅ `c1ee2b5`** · every row of the corrected table executed once:
+  `pnpm install` → 0 · `pnpm dev` → serves `/` 200 · `pnpm lint` → **1** (Prettier half only; see the
+  note below) · `pnpm exec eslint .` → 0 · `pnpm typecheck` → 0 · `pnpm test` → 0 ·
+  `pnpm test <path>` → 0 · `pnpm test:int` → 0 · `pnpm test:e2e` → 0 (4 passed) · `pnpm build` → 0 ·
+  `pnpm start` → `/` 200, `/api/health` 200 · `pnpm db:migrate --name noop_check` → 0 ("Already in
+  sync", no migration created) · `pnpm db:generate` → 0 · `pnpm db:seed` → **1**, the deliberate stub.
+  `git ls-files | grep '^\.env'` → only `.env.example`.
+  **Finding, recorded in the table itself:** on Windows with `core.autocrlf=true` the Prettier half of
+  `pnpm lint` fails on **all 25 pre-existing files** (`.prettierrc` sets `endOfLine: "lf"`, the working
+  tree is CRLF). Pre-existing and local only — CI on Linux is green and `pnpm exec eslint .` is clean.
+  Not fixed here: a `.gitattributes` + `git add --renormalize` is a repo-wide change outside this plan.
+- **T-03 ✅ `5012f28`** · `pnpm exec prisma validate` → "The schema at prisma\schema.prisma is valid 🚀"
+  (so `@default(cuid())` is accepted; the `uuid(7)` fallback of R-7 was not needed) ·
+  `pnpm db:migrate --name domain_model` → applied `20261110034318_domain_model` ·
+  `pnpm db:generate` → "Generated Prisma Client (7.10.1)" (so a plain string is accepted in
+  `datasource.url`, the §3.4 risk did not materialise) · `pnpm exec prisma migrate status` →
+  "2 migrations found … Database schema is up to date!" · `pnpm typecheck` → 0 ·
+  `grep -Ein '(double precision|numeric|real|decimal)' prisma/migrations/*/migration.sql` → **empty**
+  (exit 1); the three money columns are `INTEGER NOT NULL`. 8 `CREATE TYPE`, 8 `CREATE TABLE`,
+  `DROP TABLE "SkeletonCheck"`. AC-001-01 (local half), AC-001-02 met.
+- **T-04 ✅ `eef3c0b`** · `pnpm test` → red first (both files unresolvable), then **26 passed** ·
+  `pnpm exec eslint .` → 0, which is the proof that `src/server/domain` imports no Prisma and no
+  framework · `pnpm typecheck` → 0. AC-001-02, AC-001-05 (domain half) met.
+- **T-05 ✅ `95d54e8`** · `date-fns@4.4.0` and `@date-fns/tz@1.5.0` installed `--save-exact`, both
+  re-verified against the registry at install time (`date-fns` `latest` = `4.4.0`, `@date-fns/tz`
+  `latest` = `1.5.0`) · `pnpm test tests/unit/time.test.ts` → red first, then **10 passed**; full
+  `pnpm test` → **36 passed** · also green under `TZ=UTC` and `TZ=Asia/Tokyo`, so CI's UTC host cannot
+  make it lie · `pnpm exec eslint .` → 0 · `pnpm typecheck` → 0. AC-001-07 met.
+- **Block close (T-01…T-05)** · `pnpm exec eslint .` → 0 · `pnpm typecheck` → 0 · `pnpm test` → 0
+  (36 passed) · `pnpm test:int` → 0 (2 passed) · `pnpm build` → 0.
