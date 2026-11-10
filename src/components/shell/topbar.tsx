@@ -28,8 +28,29 @@ export function Topbar({ userName }: { readonly userName: string }) {
   return (
     <header className="sticky top-0 z-40 flex h-14 shrink-0 items-center gap-2 border-b border-border bg-background/90 px-4 backdrop-blur-sm sm:px-6">
       <MobileNav />
-      <Link href="/home" className="lg:hidden">
-        <Wordmark size="sm" />
+      <Link href="/home" className="shrink-0 lg:hidden">
+        {/*
+         * Below 640 px only the mark is rendered. Measured: with the
+         * `oakfern` text the topbar's min-content width is 389 px against a
+         * 375 px viewport, so the row only "fitted" by spilling into its own
+         * right padding — on Linux chromium's slightly wider glyph metrics
+         * that spill became 3 px of document overflow and broke AC-001-15 in
+         * CI. Dropping the word at the smallest breakpoint takes the row to
+         * 332 px, which leaves real slack instead of a rounding accident. The
+         * mark keeps its own `aria-label`, so the link is still named.
+         */}
+        {/*
+         * The visibility class goes on a wrapper, not on `Wordmark`: the
+         * component hard-codes `inline-flex`, and two `display` utilities on
+         * the same element are decided by stylesheet order, not by authoring
+         * order — `hidden` loses and both marks paint.
+         */}
+        <span className="sm:hidden">
+          <Wordmark size="sm" withText={false} />
+        </span>
+        <span className="hidden sm:block">
+          <Wordmark size="sm" />
+        </span>
       </Link>
       <div className="flex-1" />
       <Button asChild size="sm">
