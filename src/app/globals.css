@@ -1,0 +1,105 @@
+@import 'tailwindcss';
+
+/**
+ * Oakfern design tokens — `docs/ux/ui-brief.md` §1.1 only.
+ *
+ * Feature 000 defines the tokens so feature 001 inherits them; it styles
+ * nothing beyond document defaults. No layout, no sidebar, no dark-mode
+ * review here — UI-01 is feature 001.
+ *
+ * Identity: cool slate neutrals plus ONE accent, a deep teal. Green and red
+ * are reserved for money semantics and are always paired with a sign or icon,
+ * never colour alone (NFR-003).
+ */
+
+:root {
+  /* Cool near-white on deep slate text. */
+  --background: oklch(0.99 0.002 240);
+  --foreground: oklch(0.21 0.02 250);
+
+  /* The single deep-teal accent: primary CTA, active nav, focus ring. */
+  --primary: oklch(0.48 0.09 192);
+  --primary-foreground: oklch(0.99 0.002 240);
+
+  /* Labels, secondary metadata, table chrome. */
+  --muted: oklch(0.96 0.004 250);
+  --muted-foreground: oklch(0.52 0.02 250);
+
+  /* 1px subtle borders, used instead of shadows. */
+  --border: oklch(0.91 0.006 250);
+
+  /* Money semantics. Inflows only, always with a `+` sign or an arrow. */
+  --positive: oklch(0.55 0.11 150);
+
+  /* Errors, `failed` status and destructive confirmations only —
+     never an ordinary outflow, which stays neutral foreground with a `-`. */
+  --destructive: oklch(0.55 0.19 25);
+
+  /* Chart series: --chart-1 is the accent, the rest step neutral-to-accent. */
+  --chart-1: oklch(0.48 0.09 192);
+  --chart-2: oklch(0.58 0.07 200);
+  --chart-3: oklch(0.67 0.05 210);
+  --chart-4: oklch(0.76 0.03 225);
+  --chart-5: oklch(0.84 0.02 240);
+
+  /* One radius across cards, inputs, buttons and dialogs. */
+  --radius: 0.625rem;
+}
+
+.dark {
+  --background: oklch(0.19 0.02 250);
+  --foreground: oklch(0.97 0.003 240);
+
+  --primary: oklch(0.66 0.09 192);
+  --primary-foreground: oklch(0.19 0.02 250);
+
+  --muted: oklch(0.26 0.02 250);
+  --muted-foreground: oklch(0.7 0.02 250);
+
+  --border: oklch(0.31 0.02 250);
+
+  --positive: oklch(0.7 0.12 150);
+  --destructive: oklch(0.66 0.17 25);
+
+  --chart-1: oklch(0.66 0.09 192);
+  --chart-2: oklch(0.6 0.07 200);
+  --chart-3: oklch(0.55 0.05 210);
+  --chart-4: oklch(0.48 0.03 225);
+  --chart-5: oklch(0.42 0.02 240);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-positive: var(--positive);
+  --color-destructive: var(--destructive);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --font-sans: var(--font-geist-sans);
+  --radius-oakfern: var(--radius);
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+/* All figures use tabular-nums (ui-brief.md §1). */
+:where(table, [data-slot='amount']) {
+  font-variant-numeric: tabular-nums;
+}
+
+/* The accent is the focus ring — the only non-money use of colour. */
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
