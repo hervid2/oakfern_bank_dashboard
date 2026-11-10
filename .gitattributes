@@ -1,0 +1,31 @@
+# Oakfern line-endings policy.
+#
+# `.prettierrc` sets `endOfLine: "lf"`, so `prettier --check .` — half of `pnpm lint` —
+# fails on any file checked out with CRLF. On Windows with `core.autocrlf=true` that was
+# every text file in the repository, which made `pnpm lint` impossible to pass locally and
+# every task's `Verify: pnpm lint` unprovable. These rules make LF the one true line ending
+# in the index *and* in the working tree on every platform, independent of local git config.
+
+# Normalise every text file to LF in the index and check it out as LF.
+* text=auto eol=lf
+
+# Binary assets: never touch their bytes, never diff them as text.
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.webp binary
+*.avif binary
+*.pdf  binary
+*.woff  binary
+*.woff2 binary
+*.ttf   binary
+*.otf   binary
+*.eot   binary
+
+# SVG is text (we hand-edit it) but must stay LF like everything else.
+*.svg text eol=lf
+
+# Lockfiles are text but generated; keep them LF and out of diffs.
+pnpm-lock.yaml text eol=lf -diff
