@@ -61,18 +61,23 @@ Authoritative pins are in **ADR-0002** (`docs/adr/0002-stack-and-versions.md`). 
 | Unverified on purpose | `@axe-core/playwright`, `@date-fns/tz`, `lucide-react`, `sonner` — the Implementer verifies each against the registry at install time (Art. 14) and records the resolved version in the feature's `plan.md`. |
 
 ## Project commands
-> ⚠️ **All of these are UNVERIFIED until feature 000 actually runs them.** They are the agreed
-> contract from KICKOFF §7; feature 000 creates the scripts and this table is corrected with the
-> real, executed output before any other feature relies on it.
+> Every row below has been executed in this repository (001 T-02; exit statuses in
+> `specs/001-domain-data-shell/tasks.md`). Nothing in this table is aspirational.
 
-| Action | Command |
-|---|---|
-| Install deps · dev server | `pnpm install` · `pnpm dev` |
-| Lint · type check | `pnpm lint` · `pnpm typecheck` |
-| Unit tests (all / one file) | `pnpm test` / `pnpm test <path>` |
-| Integration tests | `pnpm test:int` |
-| End-to-end tests | `pnpm test:e2e` |
-| Migrate · seed · build | `pnpm db:migrate` · `pnpm db:seed` · `pnpm build` |
+| Action | Command | What it actually does |
+|---|---|---|
+| Install deps | `pnpm install` | Runs `postinstall` → `prisma generate`, so `src/generated/prisma` exists afterwards |
+| Dev server | `pnpm dev` | `next dev` on `localhost:3000`; reads `.env.local` |
+| Lint | `pnpm lint` | **`eslint . && prettier --check .`** — "lint passing" means **both**. ⚠️ On Windows with `core.autocrlf=true` the Prettier half fails on every checked-out file (`endOfLine: "lf"` vs CRLF in the working tree); CI on Linux is the authority, and `pnpm exec eslint .` plus `pnpm exec prettier --check <your files>` is the local substitute |
+| Type check | `pnpm typecheck` | `tsc --noEmit` |
+| Unit tests (all / one file) | `pnpm test` / `pnpm test <path>` | `vitest run --project unit` — the **`unit` project only**, never the integration one |
+| Integration tests | `pnpm test:int` | `vitest run --project integration`; needs a reachable PostgreSQL — `docker compose up -d`, host port **5433** locally |
+| End-to-end tests | `pnpm test:e2e` | `playwright test`; its `webServer` runs `pnpm build && pnpm start` itself — **do not build first** |
+| Build | `pnpm build` | `next build` |
+| Start (production) | `pnpm start` | `next start`; required by the e2e `webServer` and by every production-mode check |
+| Migrate (dev) | `pnpm db:migrate --name <name>` | `prisma migrate dev`. In Prisma 7 it no longer runs `generate` or the seed, and without `--name` it prompts interactively |
+| Generate client | `pnpm db:generate` | `prisma generate` |
+| Seed | `pnpm db:seed` | The FR-036 deterministic demo seed as of feature 001. **Before 001 lands it is a stub that exits 1 on purpose** |
 
 `gh` is **not installed** (OQ-007): pull requests are created through the GitHub web UI. The
 repository URL is recorded in `MEMORY.md` — use that value, do not retype it from memory.

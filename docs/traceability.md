@@ -61,7 +61,7 @@
 | FR-036 | BR-001, BR-004, BR-008, BR-009 | 001 | AC-001-xx | `tests/integration/seed.test.ts` | ⬜ |
 | FR-037 | — | 008 | AC-008-xx | `tests/integration/reset-demo.test.ts` | ⬜ |
 | FR-038 | — | 000 | AC-000-06, AC-000-07, AC-000-12a, AC-000-12b (deferred) | `tests/e2e/health.spec.ts`, `tests/integration/health.test.ts` | 🟡 |
-| FR-039 | — | 000 (root shell), 001, 007 | AC-000-08 (root `error.tsx` + `not-found.tsx`), AC-001-xx, AC-007-xx | `tests/e2e/error-states.spec.ts` | 🟡 |
+| FR-039 | — | 000 (root shell), 001, 007 | AC-000-08 (root `error.tsx` + `not-found.tsx`), AC-001-xx, AC-007-xx | AC-000-08 manually evidenced in `specs/000-walking-skeleton/validation.md` (no automated test); `tests/e2e/shell.spec.ts` planned in 001 (T-13) | 🟡 |
 | FR-040 | — | 007 (Could) | AC-007-xx | `tests/e2e/command-palette.spec.ts` | ⬜ |
 | FR-041 | — | 002 (Could) | AC-002-xx | `tests/e2e/account-detail.spec.ts` | ⬜ |
 | FR-042 | — | 007 (Could) | AC-007-xx | `tests/integration/api-v1.test.ts` | ⬜ |
