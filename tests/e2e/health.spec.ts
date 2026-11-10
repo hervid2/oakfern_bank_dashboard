@@ -36,9 +36,12 @@ test.describe('walking skeleton', () => {
     const response = await page.goto('/');
     expect(response?.status()).toBe(200);
 
-    // The placeholder itself (spec §7 copy).
-    await expect(page.getByRole('heading', { level: 1, name: 'Oakfern' })).toBeVisible();
-    await expect(page.getByText('Banking dashboard — setup in progress.')).toBeVisible();
+    // 000's placeholder copy was replaced by UI-01 in feature 001 (T-12), so
+    // what this test keeps asserting is what AC-000-09 was ever about: the
+    // document shell and a single level-1 heading on `/`. The landing page's
+    // own content is asserted in `shell.spec.ts` against AC-001-09.
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Continue as demo' })).toBeVisible();
 
     // Document shell — the only UI criterion 000 verifies (CL-07).
     await expect(page.locator('html')).toHaveAttribute('lang', 'en');
