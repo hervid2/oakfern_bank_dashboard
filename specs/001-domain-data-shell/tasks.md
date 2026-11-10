@@ -89,7 +89,7 @@ Template D.21 · Sprint Profile · Planner, 2026-11-09 22:4x ET · Branch `feat/
   `package.json` · **Verify:** `pnpm test` (red first, then exit 0) · `pnpm lint` ·
   **Depends on:** T-02 · **Est. 25 min**
 
-- [ ] **T-06** — ⚠️ **Riskiest task (R-1). The deterministic seed.** Build `prisma/seed.ts` plus the
+- [x] **T-06** — ⚠️ **Riskiest task (R-1). The deterministic seed.** Build `prisma/seed.ts` plus the
   pure modules `prisma/seed/{catalog,generate,write,checks,hash}.ts`. Install
   `@faker-js/faker@10.6.0` (dev). Fixed faker seed `20261110`; `runDay` = ET midnight of today; **the
   seed mints every `id` and every timestamp itself** (ASM-001-03). Truncate the per-business tables
@@ -104,7 +104,7 @@ Template D.21 · Sprint Profile · Planner, 2026-11-09 22:4x ET · Branch `feat/
   `prisma/seed/*.ts`, `package.json` · **Verify:** `pnpm db:seed` twice → identical `content-hash`,
   both exit 0, summary pasted · **Depends on:** T-03, T-04, T-05 · **Est. 40 min**
 
-- [ ] **T-07** — **Env, repositories and services.** `src/lib/env.ts` (Zod over `DATABASE_URL`,
+- [x] **T-07** — **Env, repositories and services.** `src/lib/env.ts` (Zod over `DATABASE_URL`,
   `DIRECT_DATABASE_URL?`, `SESSION_SECRET` min 32 — fails loudly, **no default ever**).
   `src/server/repositories/{users,accounts,transactions}.ts` with the §2.3 methods; **every exported
   function takes `businessId` first** and every Prisma call filters on it, the single documented
@@ -115,7 +115,7 @@ Template D.21 · Sprint Profile · Planner, 2026-11-09 22:4x ET · Branch `feat/
   `src/server/services/{auth,accounts}.ts` · **Verify:** `pnpm lint` (proves services never import
   Prisma) · `pnpm typecheck` · **Depends on:** T-03, T-04 · **Est. 30 min**
 
-- [ ] **T-08** — **Session, guard, middleware.** Install `jose@6.2.17` (registry-verified as
+- [x] **T-08** — **Session, guard, middleware.** Install `jose@6.2.17` (registry-verified as
   `latest`, plan §7.1). `src/lib/session.ts` (HS256 sign/verify, 8 h `exp`, cookie
   `oakfern_session` `httpOnly`+`secure`+`sameSite=lax`+`path=/`; `verifySession` returns `null` on
   **any** failure). `requireSession()` / `requireAdmin()` in `services/auth.ts`.
@@ -127,7 +127,7 @@ Template D.21 · Sprint Profile · Planner, 2026-11-09 22:4x ET · Branch `feat/
   `tests/unit/session.test.ts`, `package.json` · **Verify:** `pnpm test` · `pnpm build` (proves the
   middleware bundles for edge) · **Depends on:** T-07 · **Est. 30 min**
 
-- [ ] **T-09** — **Integration tests over the real database, and the coverage threshold.**
+- [x] **T-09** — **Integration tests over the real database, and the coverage threshold.**
   `tests/helpers/db.ts` (truncate helper + the **two-business** fixture).
   `tests/integration/seed.test.ts`: volumes (AC-001-04), BR-002 invariant per account (AC-001-05),
   BR-011 internal-leg shape and the "30-day money-out excluding internal is strictly less than
@@ -340,3 +340,79 @@ AC-000-12a).
   make it lie · `pnpm exec eslint .` → 0 · `pnpm typecheck` → 0. AC-001-07 met.
 - **Block close (T-01…T-05)** · `pnpm exec eslint .` → 0 · `pnpm typecheck` → 0 · `pnpm test` → 0
   (36 passed) · `pnpm test:int` → 0 (2 passed) · `pnpm build` → 0.
+- **T-06 ✅ `1cd1e15`** · runner: the **`tsx@4.23.15` fallback** was taken (`db:seed` is
+  `tsx prisma/seed.ts`), so ASM-001-12's pre-authorised fallback is the executed path, not
+  `node --experimental-strip-types`. `pnpm db:seed` run **twice** on 2026-11-10 — both **exit 0**,
+  both printing `content-hash:
+  91bd39c0ffb1c349541a4eef34457a6e53e9e6449fd703f33961ca143850be44` and
+  `all self-checks passed`, so AC-001-03 holds. Summary, run day `2026-11-10` (ET): 1 Business ·
+  1 User (admin, no password hash) · 14 Category · 4 Account · 5 Card · 61 Counterparty ·
+  24 Transfer · **1,369 Transaction** (48 internal legs, 3 pending ach/wire outflows) · ledger span
+  **375 days**. Balances via the app's own `computeBalances`: Operating $317,325.53 / $288,220.53 ·
+  Payroll $50,072.13 / $50,072.13 · Reserve $310,372.26 / $310,372.26 · Treasury $235,748.62 /
+  $235,748.62 · **total cash $913,518.54**. 30 ET days, internal excluded: in $254,746.64, out
+  $281,636.79; **out including internal $472,336.79** (so the BR-011 exclusion is observable, not
+  vacuous). Average net burn $50,751.03/month over 2026-08…2026-10 → **runway 18.0 months**, inside
+  the AC-001-08 14–24 band. AC-001-03, AC-001-04, AC-001-05, AC-001-06, AC-001-08 met.
+- **T-07 ✅ `fd719f8`** · `pnpm lint` → **0** (`eslint .` **and** `prettier --check .`), which is the
+  mechanical proof that `src/server/services` imports no Prisma and no framework and that only
+  `repositories/client.ts` imports the generated client · `pnpm typecheck` → **0**. Every exported
+  repository function takes `businessId` first; `findDemoUser()` is the single documented exception
+  and T-09 pins that property with a test. AC-001-10 (foundation), AC-001-19 (env guard half) met.
+- **T-08 ✅ `489dda0`** · `jose@6.2.17` installed `--save-exact` (registry `latest` = `6.2.17`,
+  zero dependencies, WebCrypto) · `pnpm test` → **48 passed / 6 files** (12 new session tests) ·
+  `pnpm build` → **0**, route table lists `ƒ Proxy (Middleware)`, so plan §8 **R-9 did not
+  materialise**: the edge bundle builds · `pnpm lint` → 0 · `pnpm typecheck` → 0.
+  **The matcher was verified by request, not by reading the regex.** `pnpm build && pnpm start`
+  with `SESSION_SECRET` **in the process environment only** (never written to a tracked file;
+  `git check-ignore -v .env.local` → `.gitignore:8:.env.*`, and `git ls-files | grep '^\.env'` →
+  only `.env.example`):
+  (1) `GET /api/health` with no cookie → **200** `{"status":"ok","database":"ok",…}` — OQ-009 holds;
+  (2) `GET /home` anonymous → **307 → `/`**;
+  (3) `GET /` anonymous → **200**;
+  (4) `GET /home` with a valid cookie → **404** (the page itself arrives in T-12) — the middleware
+  let it through, which is the **positive** half of AC-001-19;
+  (5) `GET /` with a valid cookie → **307 → `/home`**;
+  (6) `GET /home` with an expired cookie → **307 → `/?session=expired`** plus
+  `set-cookie: oakfern_session=; Path=/; Max-Age=0` — AC-001-12 treated as anonymous, nothing
+  executed;
+  (7) `GET /api/health` with an expired cookie → **200**.
+  The same seven probes re-run with `SESSION_SECRET` **unset** fail **closed**: probe (4) became
+  `307 → /?session=expired` and probe (5) stayed `200` on `/`, i.e. a valid token is honoured by
+  nobody when the secret is absent, while `/api/health` stayed 200. With the secret missing or
+  shorter than 32 characters the signing path throws a named `SESSION_SECRET …` error
+  (`tests/unit/session.test.ts`, 3 AC-001-19 cases, one of which proves the secret is read **per
+  call** rather than memoised at import). AC-001-09 (cookie contract half), AC-001-11 (clear-cookie
+  half), AC-001-12, AC-001-19 met; the browser halves of AC-001-09/11 land with T-13.
+- **T-09 ✅ `a7bc07e`** · `pnpm test:int` → **19 passed / 3 files** (17 new), every title carrying its
+  AC id. AC-001-10, one test per repository method against the **two-business fixture** in
+  `tests/helpers/db.ts`: `findUserById`, `findDemoUser` (the documented exception — asserted to take
+  **no** caller input, `expect(findDemoUser).toHaveLength(0)`), `listAccounts`, `findAccountById`,
+  `listBalanceRows` (including the `accountId`-narrowed form), `countTransactions`, plus the composed
+  `services.accounts.getAccountBalances`, plus a forged-`businessId` case. **The suite was proved
+  non-vacuous by mutation:** dropping `businessId` from `repositories/accounts.ts`'s two `where`
+  clauses turned **5 of 9** scoping tests red — `expected [8 accounts] to have a length of 2 but got
+  8` and `expected { id: 'acc_b_a_…' } to be null` — and the file was restored (`git diff --stat` →
+  empty) before committing. Seed assertions read **back out of PostgreSQL**: AC-001-04 volumes,
+  AC-001-02 (every `amountCents` / `monthlyLimitCents` a safe integer inside `int4`), AC-001-05
+  (BR-002 per account **and** `getAccountBalances` agreeing with the ledger, NFR-011), AC-001-06
+  (internal-leg shape, legs summing to 0, 30-day out excluding < including, and categorised spending
+  **exactly equal** to external posted outflows so no internal leg can enter a category bucket),
+  AC-001-07 (30 distinct ET day buckets over stored UTC instants, ≥ 12 ET months).
+  **Coverage threshold on** at 80 % for `src/server/domain` (ASM-001-14): `pnpm test --coverage` →
+  exit **0**, statements **98.64 %** (73/74) · branches **100 %** (25/25) · functions **94.44 %**
+  (17/18) · lines **100 %** (65/65) — met by the existing tests, nothing lowered (R-8). The
+  threshold was itself proved enforcing: temporarily raising `statements` to 99.5 gave
+  `ERROR: Coverage for statements (98.64%) does not meet global threshold (99.5%)`, exit 1.
+  **Deviation from the plan, deliberate:** `tests/helpers/db.ts` ships the two-business fixture but
+  **no truncate-everything helper**. The seed owns truncation, `tests/integration/seed.test.ts`
+  measures the seeded workspace, and Vitest runs files in parallel — a truncating helper would have
+  deleted the dataset its sibling asserts on. The fixture adds two throwaway businesses with unique
+  slugs and removes exactly those through `onDelete: Cascade`.
+  **Not provable in 001:** AC-001-10's "and the route answers **404**" half. 001 ships no id-bearing
+  route (`/accounts/[id]` and `/transactions/[id]` arrive with 002 and 003); what is proved is the
+  condition that makes the 404 inevitable — a cross-business read resolves to `null` / `[]`. The
+  shell's 404 path is AC-001-17 in T-13.
+- **Block close (T-06…T-09)** · `pnpm lint` → 0 · `pnpm typecheck` → 0 · `pnpm test --coverage` → 0
+  (48 passed, threshold met) · `pnpm test:int` → 0 (19 passed, against a freshly re-seeded database)
+  · `pnpm build` → 0 · `pnpm db:seed` ×2 → identical `content-hash`, both exit 0.
