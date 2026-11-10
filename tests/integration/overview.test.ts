@@ -155,6 +155,45 @@ describe('getOverview against the seeded workspace', () => {
       expect(ids.has(row.id)).toBe(true);
     }
   });
+
+  it('AC-002-23: the 8-row window is the newest of the ledger by effective ET date, not an artefact of NULL ordering', async () => {
+    // Regression guard for the NULLS-FIRST defect: `ORDER BY postedAt DESC`
+    // sorts null-`postedAt` rows (every non-`posted` status) ahead of every
+    // posted row in PostgreSQL, so the window used to be filled with stale
+    // canceled/failed rows whatever their age. The contract this asserts is
+    // ASM-002-01's sort key — `postedAt ?? createdAt`, descending — computed
+    // here in TypeScript over the whole ledger and compared with what the
+    // repository returns.
+    const ledger = await prisma.transaction.findMany({
+      where: { businessId: demoBusinessId },
+      select: { id: true, postedAt: true, createdAt: true },
+    });
+
+    const effectiveOf = (row: { postedAt: Date | null; createdAt: Date }): number =>
+      (row.postedAt ?? row.createdAt).getTime();
+
+    const byEffective = [...ledger].sort((a, b) => effectiveOf(b) - effectiveOf(a));
+
+    expect(byEffective.length).toBeGreaterThan(8);
+
+    const cutoff = effectiveOf(byEffective[7]);
+    const window = await listRecentTransactions(demoBusinessId, 8);
+
+    expect(window).toHaveLength(8);
+
+    // No row in the window may be older than the 8th-newest ledger row.
+    for (const row of window) {
+      expect(effectiveOf(row)).toBeGreaterThanOrEqual(cutoff);
+    }
+
+    // The newest ledger row cannot be missing from it, and the window itself
+    // already arrives newest-first out of the database.
+    expect(window.map((row) => row.id)).toContain(byEffective[0].id);
+
+    for (let index = 1; index < window.length; index += 1) {
+      expect(effectiveOf(window[index - 1])).toBeGreaterThanOrEqual(effectiveOf(window[index]));
+    }
+  });
 });
 
 describe('internal transfer legs in the recent list (BR-011)', () => {

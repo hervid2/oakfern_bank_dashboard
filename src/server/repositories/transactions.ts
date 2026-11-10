@@ -128,9 +128,16 @@ const toRecentRow = (row: SelectedRecentRow): RecentTransactionRow => ({
 
 /**
  * The newest `limit` rows of the ledger, **every status**, newest first
- * (ASM-002-01). `postedAt` is nullable — a `pending` row has none — so
- * `createdAt` is the tie-break here and the service re-sorts on the effective ET
- * date after merging in the pending reads.
+ * (ASM-002-01).
+ *
+ * The order key is `createdAt` **alone**, deliberately. `postedAt` is nullable —
+ * every non-`posted` row has none — and PostgreSQL sorts NULLs **first** in
+ * `DESC`, so ordering by `postedAt` would hand the whole window to the
+ * pending/canceled/failed rows whatever their age and bury the real ledger. For
+ * a `posted` row `createdAt` equals `postedAt`, and for a null-`postedAt` row
+ * `createdAt` is exactly ASM-002-01's `postedAt ?? createdAt`; so this single key
+ * *is* the effective ET date. The service still re-sorts on `effectiveAt` after
+ * merging in the pending reads.
  */
 export const listRecentTransactions = async (
   businessId: string,
@@ -138,7 +145,7 @@ export const listRecentTransactions = async (
 ): Promise<RecentTransactionRow[]> => {
   const rows = await prisma.transaction.findMany({
     where: { businessId },
-    orderBy: [{ postedAt: 'desc' }, { createdAt: 'desc' }],
+    orderBy: { createdAt: 'desc' },
     take: limit,
     select: recentSelect,
   });
