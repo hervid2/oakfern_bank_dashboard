@@ -33,7 +33,7 @@ Spec v0.3 · Plan: `specs/000-walking-skeleton/plan.md` · Template D.21 · Plan
 
 - [ ] **T-11** — Evidence task, no production code. Run the full local gate and the two checks that need a deliberately broken environment: (a) the **503 path** — start the built server with `DATABASE_URL` on port 5499 and `curl -i /api/health`, expecting 503, `application/json` and exactly three keys; (b) the **lint probe** — create `src/server/domain/__lint-probe.ts` importing `@prisma/client`, run `pnpm lint`, confirm it **fails** with `no-restricted-imports`, repeat for the generated client path, then delete the file. Paste all output. · **AC:** AC-000-03, AC-000-07, AC-000-10 · **Files:** none committed (`__lint-probe.ts` is deleted; evidence goes to `validation.md`) · **Verify:** `pnpm lint && pnpm typecheck && pnpm test && pnpm test:int && pnpm build && pnpm test:e2e` all green · `git ls-files | grep __lint-probe` empty · **Depends on:** T-10 · **Est. 12 min**
 
-- [ ] **T-12** — `.github/workflows/ci.yml` with the six jobs of `plan.md` §4.5 (`lint`, `typecheck`, `unit`, `integration`, `build`, `e2e`), `postgres:18` service containers for the two database jobs, `pnpm install --frozen-lockfile`, `prisma migrate deploy` (never `migrate dev`), and a non-secret localhost `DATABASE_URL`. · **AC:** AC-000-11 · **Files:** `.github/workflows/ci.yml` · **Verify:** `pnpm lint` locally, then the Actions run in T-13 · **Depends on:** T-11 · **Est. 18 min**
+- [ ] **T-12** — **C1 TAKEN (human, 🚦 G-SpecPlan 2026-11-09): two jobs, not six.** `.github/workflows/ci.yml` with `verify` (lint + typecheck + unit + build) and `database` (integration + e2e), `postgres:18` service containers for the two database jobs, `pnpm install --frozen-lockfile`, `prisma migrate deploy` (never `migrate dev`), and a non-secret localhost `DATABASE_URL`. · **AC:** AC-000-11 · **Files:** `.github/workflows/ci.yml` · **Verify:** `pnpm lint` locally, then the Actions run in T-13 · **Depends on:** T-11 · **Est. 18 min**
 
 - [ ] **T-13** — 🛑 **Human-gated (Art. 9).** Push the branch; the **human** opens the PR through the GitHub web UI (`gh` is absent, OQ-007) at `https://github.com/hervid2/oakfern_bank_dashboard`; wait for the six jobs to go green; then verify the Vercel **Preview**: `curl -i <preview-url>/api/health` returns 200 with `status:"ok"` and take a Preview screenshot of `/`. Record the run URL, the body and the screenshot. · **AC:** AC-000-11, AC-000-12a · **Files:** none (evidence into `validation.md`) · **Verify:** Actions run URL green · `curl -i <preview-url>/api/health` · **Depends on:** T-12 · **Est. 15 min** (mostly CI and deploy wall-clock)
 
@@ -57,6 +57,8 @@ than silently taken.
 | | Minutes |
 |---|---|
 | T-01 … T-14 summed | **199 min = 3 h 19 min** |
+| − C1 taken at the gate (two CI jobs, not six) | **− 8 min → 191 min = 3 h 11 min** |
+| Approved box (human, 🚦 G-SpecPlan 2026-11-09) | **180 min = 3 h 00** — C2 and C3 held in reserve |
 | Timebox (`docs/roadmap.md`, KICKOFF §5) | **105 min = 1 h 45 min** |
 | SP-6 +30 % trigger | 136 min = 2 h 17 min |
 | Overrun as planned | **+94 min (+90 %)** |
