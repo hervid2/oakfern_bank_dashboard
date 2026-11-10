@@ -66,3 +66,5 @@
 | Screen | `UI-xx` | An identified screen in `docs/ux/ui-brief.md`. Specs reference screens by this ID. | page, view (as an ID) | ui-brief.md |
 | Spec | `specs/NNN-slug/` | The approved behaviour of one feature (GENESIS level 4). | ticket, story (as a document) | GENESIS §A.2 |
 | Client requirement | `CR-n` | One of the seven requirements in the assignment email. | ask, need | brief §1 |
+| Health check | `GET /api/health` | Unauthenticated endpoint reporting application status and database reachability: `200` with `status: "ok"` when the database answers, `503` with `status: "degraded"` when it does not. Never exposes secrets. | ping, status page, heartbeat, liveness probe | FR-038, NFR-009, spec 000 §8.1 |
+| Walking skeleton | `specs/000-walking-skeleton/` | The thinnest end-to-end slice that exercises the whole toolchain (scaffold, lint, types, tests, Prisma, PostgreSQL, CI, deployment) without any business logic. | boilerplate, scaffold (as the feature name), setup | roadmap 000 |
