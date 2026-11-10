@@ -39,20 +39,36 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
+/**
+ * Process-local memo. This is the line whose absence was a **measured**
+ * production defect (000 validation §6 item 1, AC-001-22): the `globalThis`
+ * memo below is only written when `NODE_ENV !== 'production'`, so without this
+ * `let` every property access on the Proxy built a new `PrismaClient` and a new
+ * `pg` pool and never closed it — client backends grew 1 → 27 over 26 requests.
+ * The `globalThis` branch is kept, and only for dev hot-reload.
+ */
+let client: PrismaClient | undefined;
+
 const getPrismaClient = (): PrismaClient => {
+  if (client) {
+    return client;
+  }
+
   const existing = globalForPrisma.prisma;
 
   if (existing) {
-    return existing;
+    client = existing;
+
+    return client;
   }
 
-  const created = createPrismaClient();
+  client = createPrismaClient();
 
   if (process.env.NODE_ENV !== 'production') {
-    globalForPrisma.prisma = created;
+    globalForPrisma.prisma = client;
   }
 
-  return created;
+  return client;
 };
 
 /**
