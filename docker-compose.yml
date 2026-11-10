@@ -1,0 +1,39 @@
+# ---------------------------------------------------------------------------
+# Local development database for Oakfern (ADR-0006, OQ-006).
+# PostgreSQL 18 matches the major version of the Neon Free instance used in
+# preview/production, and of the CI service container, so local, CI and hosted
+# behaviour stay identical.
+#
+# These credentials are local-only development values, never used anywhere
+# else; the real connection string lives in `.env.local` (git-ignored).
+# ---------------------------------------------------------------------------
+services:
+  postgres:
+    image: postgres:18
+    container_name: oakfern-postgres
+    restart: unless-stopped
+    ports:
+      # Host 5433, container 5432. spec.md §4.2 assumed host 5432 was free; it
+      # is not — a native `postgresql-x64-18` Windows service already listens
+      # there and wins `localhost` connections, so Prisma hit the wrong server
+      # (P1000). Publishing on 5433 avoids touching the developer's machine.
+      # CI service containers keep using 5432 (nothing else listens there).
+      - '5433:5432'
+    environment:
+      POSTGRES_USER: oakfern
+      POSTGRES_PASSWORD: oakfern_local_dev
+      POSTGRES_DB: oakfern
+    volumes:
+      # postgres:18+ expects a SINGLE mount at /var/lib/postgresql and places
+      # the cluster in a version-named subdirectory inside it. Mounting
+      # /var/lib/postgresql/data (the pre-18 convention) makes the entrypoint
+      # abort on start.
+      - oakfern-postgres-data:/var/lib/postgresql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U oakfern -d oakfern']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  oakfern-postgres-data:
