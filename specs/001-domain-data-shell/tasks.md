@@ -149,7 +149,7 @@ Template D.21 · Sprint Profile · Planner, 2026-11-09 22:4x ET · Branch `feat/
 
 ### Phase 2 — the app shell
 
-- [ ] **T-10** — **UI dependencies and primitives.** `pnpm dlx shadcn@4.23.0 init` (`--src-dir`,
+- [x] **T-10** — **UI dependencies and primitives.** `pnpm dlx shadcn@4.23.0 init` (`--src-dir`,
   pointing at the existing `src/app/globals.css`), then add exactly `button`, `sheet`,
   `dropdown-menu`, `separator`, `skeleton`. ⚠️ **Commit before running it**, then `git diff --stat`
   immediately: the approved teal/slate token block in `globals.css` must survive, and
@@ -162,7 +162,7 @@ Template D.21 · Sprint Profile · Planner, 2026-11-09 22:4x ET · Branch `feat/
   `src/app/globals.css` (verified unchanged in substance) · **Verify:** `pnpm lint` ·
   `pnpm typecheck` · `git diff --stat` reviewed and pasted · **Depends on:** T-09 · **Est. 25 min**
 
-- [ ] **T-11** — **The shell.** `src/components/shell/{nav-items.ts,app-sidebar,mobile-nav,topbar,theme-toggle}.tsx`,
+- [x] **T-11** — **The shell.** `src/components/shell/{nav-items.ts,app-sidebar,mobile-nav,topbar,theme-toggle}.tsx`,
   `src/components/theme-provider.tsx`, `src/components/states/{empty-state,error-state,section-placeholder}.tsx`,
   and `src/app/(app)/layout.tsx` calling `requireSession()` then rendering sidebar + topbar.
   `src/app/layout.tsx` gains the `ThemeProvider` and `suppressHydrationWarning`. The 5 FR-004 nav
@@ -174,7 +174,7 @@ Template D.21 · Sprint Profile · Planner, 2026-11-09 22:4x ET · Branch `feat/
   (proves `src/components` never imports `src/server`) · `pnpm build` · browse 1280 px and 375 px
   through the **Playwright MCP**, screenshots + clean console · **Depends on:** T-10 · **Est. 40 min**
 
-- [ ] **T-12** — **Routes, landing and every required state.** Replace `src/app/page.tsx` with UI-01
+- [x] **T-12** — **Routes, landing and every required state.** Replace `src/app/page.tsx` with UI-01
   (wordmark, value proposition, the honesty line, "Continue as demo"; redirect to `/home` if already
   authenticated, and the expiry explanation when arriving from E-3). Create `(app)/{home,transactions,accounts,payments,cards}/page.tsx`
   with their honest placeholders **and a `loading.tsx` content-shaped skeleton each** — no full-page
@@ -187,7 +187,7 @@ Template D.21 · Sprint Profile · Planner, 2026-11-09 22:4x ET · Branch `feat/
   '%{http_code}' localhost:3000/_dev/boom` → **404** against the production build
   · **Depends on:** T-11 · **Est. 35 min**
 
-- [ ] **T-13** — **End-to-end suite.** `tests/e2e/shell.spec.ts`, every title carrying its AC id:
+- [x] **T-13** — **End-to-end suite.** `tests/e2e/shell.spec.ts`, every title carrying its AC id:
   sign-in from `/` with the cookie-flag assertions (AC-001-09); sign-out and the subsequent redirect
   (AC-001-11); the 5 nav items with exactly one `aria-current` (AC-001-13); dark via
   `colorScheme: 'dark'` with no flash, plus toggle-then-reload persistence (AC-001-14); the four
@@ -416,3 +416,79 @@ AC-000-12a).
 - **Block close (T-06…T-09)** · `pnpm lint` → 0 · `pnpm typecheck` → 0 · `pnpm test --coverage` → 0
   (48 passed, threshold met) · `pnpm test:int` → 0 (19 passed, against a freshly re-seeded database)
   · `pnpm build` → 0 · `pnpm db:seed` ×2 → identical `content-hash`, both exit 0.
+- **T-10 ✅ `c124963`** · `pnpm dlx shadcn@4.23.0 init --base radix --preset nova --yes` then
+  `add button sheet dropdown-menu separator skeleton --yes`. **R-3 did not materialise:**
+  `git diff --numstat src/app/globals.css` → **68 insertions, 0 deletions** (additions only, the
+  approved ui-brief §1.1 token block verbatim), and `eslint.config.mjs` was untouched — the CLI
+  wrote only `components.json`, `src/components/ui/*.tsx`, `package.json` and the lockfile.
+  **R-4 did not materialise either:** `shadcn add` resolved **`lucide-react@1.70.0`** (registry
+  `latest` = 1.71.0) and every icon imports fine from the 1.x major. Also resolved, all re-pinned
+  exactly and recorded for the ADR-0002 amendment: `radix-ui@1.8.1` (the 4.23 `radix` base uses the
+  umbrella package, not the per-primitive ones plan §7 expected), `class-variance-authority@0.7.1`,
+  `cn@0.5.2` (shadcn's own MIT drop-in for clsx + tailwind-merge — so **no `src/lib/utils.ts` is
+  needed**, a deviation from plan §2.6), `tw-animate-css@1.4.0` and `next-themes@0.4.6`. `shadcn`
+  itself was **removed** from `dependencies`: it is a `dlx` CLI, not a runtime dependency.
+  Added to `globals.css`, additions only: the surface/control tokens the `nova` primitives read
+  (`card`, `popover`, `secondary`, `accent`, `input`, `ring`), each a step of the same cool slate
+  with `--ring` = the teal accent; `@custom-variant dark (&:is(.dark *))` so `dark:` follows
+  next-themes' class instead of the OS; `color-scheme` per theme; the `prefers-reduced-motion`
+  reset. `src/components/brand/wordmark.tsx` (inline SVG, two-stroke fern, no raster asset) and
+  `src/app/icon.svg` (favicon, AC-001-24). `pnpm lint` → **0** · `pnpm typecheck` → **0**.
+- **T-11 ✅ `e69aae9`** · `pnpm lint` → **0**, which is the mechanical proof that nothing under
+  `src/components` imports `src/server` (ADR-0001 block 4) · `pnpm typecheck` → **0** ·
+  `pnpm build` → **0**. **Playwright MCP was not available in this session**, so the browser
+  verification the task asks for was taken instead through the e2e suite of T-13, which drives a
+  real Chromium against the production build and attaches light and dark screenshots of `/home` at
+  1280 px and 375 px plus `/` at 1280 px — strictly more evidence than a manual screenshot, and
+  regression-protected. Console asserted clean (0 errors, 0 warnings, 0 page errors, no failed
+  request) in `AC-001-24`.
+  **Three deviations from plan §2.6/§5, each recorded in the file that takes it:** the sidebar and
+  its mobile twin are **client** components (a layout is never handed the pathname, so
+  `usePathname()` is the only honest source for `aria-current`); the nav carries **3** items per cut
+  C1 and the amended AC-001-13; and the "Move money" CTA is a **link**, not a `disabled` button
+  (ASM-001-09) — cut C1 gave it a destination, and a disabled CTA beside a sidebar item pointing at
+  the same route would read as a defect. `ThemeToggle` uses `useSyncExternalStore` rather than
+  `useEffect(() => setMounted(true))`, which React 19's `react-hooks/set-state-in-effect` rejects.
+- **T-12 ✅ `8917ab4`** · `pnpm lint` → **0** · `pnpm typecheck` → **0** · `pnpm build` → **0**
+  (12 routes). Against a plain production `pnpm start` (no `OAKFERN_ENABLE_DEV_ROUTES`),
+  anonymously: `/` **200** · `/home` **307 → /** · `/transactions` **307 → /** · `/move-money`
+  **307 → /** · `/no-such-page` **404** · `/home/nope` **307 → /** · **`/_dev/boom` 404** ·
+  `/_dev/shell-boom` **307 → /** · `/api/health` **200** · `/icon.svg` **200**. AC-001-24's gating
+  half is therefore executed, not reviewed.
+  **Deviation, deliberate:** the five FR-004 routes became **three** (`/home`, `/transactions`,
+  `/move-money`) — cut C1 plus the amended AC-001-13; `/accounts`, `/payments` and `/cards` would
+  have been unreachable placeholders. **Second deviation:** the two failure probes are gated by
+  `src/lib/dev-routes.ts` on `NODE_ENV !== 'production' || OAKFERN_ENABLE_DEV_ROUTES === '1'`,
+  not on NODE_ENV alone. Gating on NODE_ENV alone would have made AC-001-16 unverifiable by the e2e
+  suite, which runs against a production build — the exact way AC-000-07 was lost. Only
+  `playwright.config.ts` sets the flag; no deployed environment has it, which the `curl` line above
+  demonstrates. Documented in `.env.example`.
+- **T-13 ✅ `ba6462f`** · `pnpm test:e2e` → **16 passed / 0 failed, 37.1 s** (the 4 tests of feature
+  000 included), report retained in `playwright-report/`, screenshots attached to the run:
+  `home-1280-light/dark`, `home-375-light/dark`, `landing-1280-light/dark`.
+  AC-001-09 (cookie `HttpOnly` + `SameSite=Lax` + `Path=/` + `Secure` + 8 h expiry, shell and seeded
+  name) · AC-001-11 (menu → Sign out → cookie emptied → `/home` lands on `/`) · AC-001-13 (exactly
+  **3** links, exactly **1** `aria-current="page"`, and it follows the route after navigating) ·
+  AC-001-14 (`colorScheme: 'dark'` → `.dark` already on `<html>` **at `DOMContentLoaded`**, i.e.
+  before any paint; toggle → reload → the choice survives) · AC-001-15 (`scrollWidth <= innerWidth`
+  at 375/768/1280/1440; sidebar hidden and menu button present at 375; sheet opens, closes on
+  `Esc`) · AC-001-16 (error state, retry works twice, body contains no message, no `.js:`, no `at `
+  frame and no digest; nav still rendered) · AC-001-17 (**status 404**, shell 404 copy, link back)
+  · AC-001-18 (a `loading.tsx` per section asserted off the source tree; each placeholder's honest
+  copy; exactly one `<h1>`) · AC-001-24 (no `/favicon.ico` 404, no failed request at all,
+  `/icon.svg` 200 `image/svg+xml`, console clean). **No axe scan** — deferred to 003.
+  **One structural change the red run forced, measured rather than guessed:** each section's
+  `page.tsx` + `loading.tsx` moved into a `(section)` route group. With `loading.tsx` as a sibling
+  of the `[...notFound]` catch-all, Next flushed the Suspense shell before the render reached
+  `notFound()` and answered **200 with 404 content**; the route group scopes the loading boundary to
+  the section page without changing a URL, and AC-001-17 went red → green on that change alone.
+  **`tests/e2e/health.spec.ts` AC-000-09 updated** (000's placeholder copy no longer exists on `/`).
+- **Block close (T-10…T-13)** · `pnpm lint` → **0** · `pnpm typecheck` → **0** · `pnpm test` → **0**
+  · `pnpm build` → **0** · `pnpm test:e2e` → **0** (16 passed).
+- **🛑 Carried to T-14 / the Coordinator — CI will go red on this branch without two edits to
+  `.github/workflows/ci.yml`, a file outside the Implementer's permission scope.** The e2e job now
+  signs a visitor in, so it needs (a) a workflow-level `SESSION_SECRET` (any 32+ character literal;
+  it signs nothing but ephemeral CI sessions) and (b) a `pnpm db:seed` step after
+  `prisma migrate deploy`, because sign-in resolves the seeded demo user and `migrate deploy` does
+  not seed. Without both, `AC-001-09` and every test that depends on `signIn` fail in CI while
+  passing locally.
