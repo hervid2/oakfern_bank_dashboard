@@ -72,6 +72,28 @@ the build at hour 20 — and the only non-obvious pin is Prisma, held at 7.10.1 
 `latest` tag currently resolves to an 8.0.0 release candidate (the discarded alternative, following
 `latest`, would put a pre-release ORM under the money logic).
 
+### Amendment 1 — versions resolved at install time (feature 000, 2026-11-09)
+
+ADR-0002 deliberately left some versions unpinned and delegated them to the Implementer at install
+time (see the "Unverified versions" row). Feature 000 executed that install, so the resolved values
+are recorded here. **No pin in the table above was violated or substituted**; every one of them
+resolved on the registry exactly as written.
+
+| Package | Resolved pin | Why not the registry `latest` |
+|---|---|---|
+| `packageManager` / **pnpm** | **`11.28.9`** | `latest` is `12.18.0`, but pnpm 12 ships native binaries (`bin: {"pnpm":"pnpm"}`) and the installed **corepack 0.33.0** looks for `bin/pnpm.cjs`, failing with `Cannot find module …\pnpm
+.18.0in\pnpm.cjs`. `11.28.9` is JS-based and its `engines.node` (`>=22.13`) matches our pinned Node `22.17.0`. ADR-0002 pinned no pnpm version, so this is a new decision, not a contradiction |
+| **`typescript`** | **`5.9.3`** | `latest` is `7.0.2`, but `eslint-config-next@16.4.6` depends on `typescript-eslint ^8.56.0`, whose peer range is `typescript >=4.8.4 <6.1.0`. TypeScript 7 is unusable with the pinned Next ESLint config |
+| **`@prisma/adapter-pg`** | **`7.10.1`** | New **mandatory** dependency: Prisma 7 requires a driver adapter for a direct database connection, so "don't add it" is not available. Art. 10 justification in `specs/000-walking-skeleton/plan.md` §7.3. It bundles `pg`, so no separate `pg` install |
+
+**Build-tooling note (not a version pin):** pnpm 11 requires a `pnpm-workspace.yaml` to grant
+install-script permission to Prisma's engines, and it renamed that key from pnpm 10's
+`onlyBuiltDependencies` (a list) to **`allowBuilds`** (a map). Without it `pnpm install` exits
+non-zero with `ERR_PNPM_IGNORED_BUILDS` and Prisma's engines are never placed. CI must honour it too.
+
+`@axe-core/playwright`, `@date-fns/tz`, `lucide-react` and `sonner` remain unresolved: none is needed
+by feature 000, and the axe scan moved to feature 003. **TD-008 stays open.**
+
 ## Consequences
 
 **Positive**
