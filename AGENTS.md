@@ -68,7 +68,7 @@ Authoritative pins are in **ADR-0002** (`docs/adr/0002-stack-and-versions.md`). 
 |---|---|---|
 | Install deps | `pnpm install` | Runs `postinstall` → `prisma generate`, so `src/generated/prisma` exists afterwards |
 | Dev server | `pnpm dev` | `next dev` on `localhost:3000`; reads `.env.local` |
-| Lint | `pnpm lint` | **`eslint . && prettier --check .`** — "lint passing" means **both**. ⚠️ On Windows with `core.autocrlf=true` the Prettier half fails on every checked-out file (`endOfLine: "lf"` vs CRLF in the working tree); CI on Linux is the authority, and `pnpm exec eslint .` plus `pnpm exec prettier --check <your files>` is the local substitute |
+| Lint | `pnpm lint` | **`eslint . && prettier --check .`** — "lint passing" means **both**. Exits 0 on Windows and on CI: `.gitattributes` (`* text=auto eol=lf`) makes LF the line ending in the index **and** in the working tree, matching `.prettierrc`'s `endOfLine: "lf"`. If Prettier ever reports every file at once, the checkout is CRLF — fix it with `git rm --cached -r . && git reset --hard`, never by reformatting files |
 | Type check | `pnpm typecheck` | `tsc --noEmit` |
 | Unit tests (all / one file) | `pnpm test` / `pnpm test <path>` | `vitest run --project unit` — the **`unit` project only**, never the integration one |
 | Integration tests | `pnpm test:int` | `vitest run --project integration`; needs a reachable PostgreSQL — `docker compose up -d`, host port **5433** locally |

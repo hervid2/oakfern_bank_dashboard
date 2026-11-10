@@ -313,10 +313,14 @@ AC-000-12a).
   `pnpm start` → `/` 200, `/api/health` 200 · `pnpm db:migrate --name noop_check` → 0 ("Already in
   sync", no migration created) · `pnpm db:generate` → 0 · `pnpm db:seed` → **1**, the deliberate stub.
   `git ls-files | grep '^\.env'` → only `.env.example`.
-  **Finding, recorded in the table itself:** on Windows with `core.autocrlf=true` the Prettier half of
-  `pnpm lint` fails on **all 25 pre-existing files** (`.prettierrc` sets `endOfLine: "lf"`, the working
-  tree is CRLF). Pre-existing and local only — CI on Linux is green and `pnpm exec eslint .` is clean.
-  Not fixed here: a `.gitattributes` + `git add --renormalize` is a repo-wide change outside this plan.
+  **Finding, since fixed:** on Windows with `core.autocrlf=true` the Prettier half of `pnpm lint`
+  failed on **all 25 pre-existing files** (`.prettierrc` sets `endOfLine: "lf"`, the working tree was
+  CRLF). Fixed on the Coordinator's instruction in the standalone commit **`44a86fc`** (`.gitattributes`
+  with `* text=auto eol=lf`): `pnpm lint` now **exits 0** locally, so every later task's
+  `Verify: pnpm lint` is a real check. `git add --renormalize .` was a no-op — `core.autocrlf=true`
+  had always normalised to LF on the way *into* the index, so no blob needed rewriting; the defect was
+  checkout-only and was cleared with `git rm --cached -r . && git reset --hard`. The `AGENTS.md` lint
+  row was corrected to drop the "local substitute" workaround.
 - **T-03 ✅ `5012f28`** · `pnpm exec prisma validate` → "The schema at prisma\schema.prisma is valid 🚀"
   (so `@default(cuid())` is accepted; the `uuid(7)` fallback of R-7 was not needed) ·
   `pnpm db:migrate --name domain_model` → applied `20261110034318_domain_model` ·
