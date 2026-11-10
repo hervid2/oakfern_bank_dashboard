@@ -1,15 +1,120 @@
+import { ArrowRightLeftIcon, HouseIcon, ReceiptTextIcon } from 'lucide-react';
+
+import { signInAsDemo } from '@/actions/auth';
+import { Wordmark } from '@/components/brand/wordmark';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+
 /**
- * Deliberately plain placeholder (spec §7). It renders server-side and fetches
- * nothing, so there is no loading boundary and no data view. Feature 001
- * replaces it with UI-01; it must not attempt a landing-page layout.
+ * UI-01, the landing and one-click demo sign-in (FR-001).
  *
- * Exactly one `<h1>` on the page — a DOM fact the e2e test asserts (AC-000-09).
+ * **No figures.** ASM-08: a landing page that showed a cash balance would be
+ * inventing one, so this screen describes the three areas of the product and
+ * says, in its own words, that the data behind them is generated.
+ *
+ * Sign-in is a plain `<form action={…}>` over a Server Action, so it works
+ * before hydration and without JavaScript — the opposite of a button that waits
+ * for a bundle. The action sets the cookie and redirects (AC-001-09).
+ *
+ * This page deliberately does **not** read the session cookie itself:
+ * `middleware.ts` already redirects an authenticated visitor to `/home` (proved
+ * by probe 5 of T-08), so a second check here would duplicate the rule in two
+ * places and let them drift.
+ *
+ * `?session=expired` is set by the middleware when a cookie was present but did
+ * not verify (spec §4 E-3), so an 8-hour-old tab is explained rather than
+ * silently bounced.
  */
-export default function HomePage() {
+
+const AREAS = [
+  {
+    icon: HouseIcon,
+    title: 'Home',
+    body: 'Cash across every account, 30-day money in and out, burn and runway.',
+  },
+  {
+    icon: ReceiptTextIcon,
+    title: 'Transactions',
+    body: 'Every movement, filterable by account, direction, status, method and date.',
+  },
+  {
+    icon: ArrowRightLeftIcon,
+    title: 'Move money',
+    body: 'Internal transfers and payments, each behind a review step before it is sent.',
+  },
+] as const;
+
+export default async function LandingPage({
+  searchParams,
+}: {
+  readonly searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const expired = (await searchParams).session === 'expired';
+
   return (
-    <main className="mx-auto flex min-h-screen max-w-xl flex-col justify-center gap-3 px-6">
-      <h1 className="text-3xl font-semibold tracking-tight">Oakfern</h1>
-      <p className="text-[color:var(--muted-foreground)]">Banking dashboard — setup in progress.</p>
+    <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col justify-center gap-10 px-6 py-16">
+      <div className="flex flex-col gap-8">
+        <Wordmark />
+
+        <div className="flex flex-col gap-5">
+          <h1 className="max-w-2xl text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
+            Your cash position, your burn and every transaction — in one calm place.
+          </h1>
+          <p className="max-w-xl text-base text-muted-foreground">
+            Oakfern is a banking dashboard for US startups and small businesses. Amounts are held as
+            integer cents and every daily total is computed in Eastern Time, so the figures you read
+            are the figures in the ledger.
+          </p>
+        </div>
+
+        {expired ? (
+          <p
+            role="status"
+            className="max-w-xl rounded-[var(--radius)] border border-border bg-muted px-4 py-3 text-sm text-foreground"
+          >
+            Your demo session expired after 8 hours. Continue as demo to start a new one — nothing
+            was lost.
+          </p>
+        ) : null}
+
+        <div className="flex flex-col items-start gap-3">
+          <form action={signInAsDemo}>
+            <Button type="submit" size="lg">
+              Continue as demo
+            </Button>
+          </form>
+          <p className="text-sm text-muted-foreground">
+            No password and no sign-up. One click opens a seeded admin workspace.
+          </p>
+        </div>
+      </div>
+
+      <Separator />
+
+      <div className="flex flex-col gap-6">
+        <h2 className="text-sm font-medium tracking-wide text-muted-foreground uppercase">
+          What the demo covers
+        </h2>
+        <ul className="grid gap-6 sm:grid-cols-3">
+          {AREAS.map((area) => {
+            const Icon = area.icon;
+
+            return (
+              <li key={area.title} className="flex flex-col gap-2">
+                <Icon aria-hidden className="size-5 text-primary" />
+                <span className="text-sm font-medium text-foreground">{area.title}</span>
+                <span className="text-sm text-muted-foreground">{area.body}</span>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+
+      <p className="max-w-2xl text-xs text-muted-foreground">
+        Oakfern is a fictional product built as a technical case study. Every business, account,
+        card, counterparty and transaction in it is generated by a deterministic seed. No real money
+        moves, and no personal data is stored.
+      </p>
     </main>
   );
 }

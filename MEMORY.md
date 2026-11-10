@@ -1,47 +1,53 @@
 # MEMORY.md — living status board (≤ 50 lines, no secrets)
 
-**Project:** Oakfern — modern banking dashboard (Post Oak Group technical case study)
-**Profile:** Sprint (GENESIS 1.1.0) + the two amendments below · **Stage:** feature `000-walking-skeleton`, implementing
-**Repo:** https://github.com/hervid2/oakfern_bank_dashboard (authoritative URL — do not retype from memory)
-**Supreme Law:** `docs/governance/GENESIS.md`
+**Project:** Oakfern — banking dashboard (Post Oak Group case study) · **Stage:** feature `001-domain-data-shell`, implementing
+**Repo:** https://github.com/hervid2/oakfern_bank_dashboard · **Supreme Law:** `docs/governance/GENESIS.md`
+**Production (live, 000 shipped):** https://oakfernbankdashboard.vercel.app — `/api/health` 200 against Neon
 
-## ⏰ Real time budget (this is the number that matters)
-**Deadline 2026-11-10 18:00 ET.** Human-available working time is **12 h 45 min**, NOT ~21 h:
-tonight **20:45 → 00:30** (3 h 45 min, hard stop — the human sleeps) and tomorrow **09:00 → 18:00** (9 h).
-Revised plan after the cut: **~11 h 45 min**, buffer ~1 h.
-**Human is on a Pro ($20) plan.** A planner agent was already killed by a session limit tonight.
-Sub-agent calls are a hard constraint: never spawn a planner or reviewer casually.
+## ⏰ DELIVERY DAY — 2026-11-10, deadline 18:00 ET
+At 08:40 there are **~9 h 20** left for: finishing 001, then 002, 003, 005, 008 — plus a validation
+and a 🚦 G-Merge each. **Calibration that matters:** 000's box was 1 h 45 and actual implementation
+~1 h 25 (≈ 0.8 of box). Planner *task* estimates run ≈ 0.43 of raw; roadmap *boxes* run ≈ 0.8.
+Projected remainder ≈ 7 h work + ~1 h validation ≈ **8 h against 9 h 20**.
+**CHECKPOINT MISSED → acted on.** 2026-11-10 11:50: **005 CUT entirely**; **008 starts at 16:15 ET**
+regardless of where 003 is — a clock rule, not an estimate. Delivers **2 of 5** areas: accounts + transactions.
+**The 0.43 calibration did NOT hold for UI work** (T-10…T-13 ran 3× its estimate). Do not trust it again.
+Human is on a **Pro ($20) plan** — two agents were already killed by session limits. Be economical.
 
-## Consumed
-| Item | Box | Consumed | Status |
-|---|---|---|---|
-| Genesis G0–G4 | ~1 h 30 | ~1 h 30 | ✅ G-Foundational + 🚦 G-Harness approved |
-| 000 spec+clarify+plan+tasks | — | ~1 h 00 (18:40–20:50) | ✅ 🚦 **G-SpecPlan approved 20:50 ET** |
-| 000 implementation | **3 h 00** (amended) | started ~20:55 | T-01…T-03 in progress |
+## Where 001 stands (updated 13:15 ET)
+**All 14 implementation tasks are committed** on `feat/001-domain-data-shell` (25 commits ahead of main).
+Full local gate green: lint 0 · typecheck 0 · unit 48 (coverage 98.6 %, threshold 80 % enforcing) ·
+integration 19 · build 0 · e2e 16.
+**T-15 DONE 13:05:** both migrations applied to Neon and `pnpm db:seed` run against it — 8 tables live,
+$913,518.54 cash, 1,369 transactions, runway 18.0 months, all five self-checks passed, and the
+`content-hash 91bd39c0…` is **identical to the local run**, which proves determinism across databases.
+**T-16 in progress:** **PR #2 is open** (head `fda08f5`), GitHub Actions `in_progress`.
+What remains for 001: CI green → **verify the Vercel Preview** (AC-001-23 — this is what closes 000's
+permanently-unverified AC-000-12a, do not skip it) → `/sdd-validate 001 combined` → 🚦 **G-Merge** → merge.
+⚠️ **Tell the human to comment out `DIRECT_DATABASE_URL` in `.env.local`** now that T-15 is done:
+while it is set, `pnpm db:reset` would drop the **Neon production** database, not local Docker.
 
 ## Decided (do not re-litigate)
-- **Scope cut 2026-11-09 20:50 ET** (detail at the top of `docs/roadmap.md`): **004 cash-insights CUT · 006 cards CUT · 007 polish DISSOLVED into 008 · 003 Must-only** (no CSV, no recategorize) · **005 reduced** to internal transfer + idempotency + BR-002. 000/001/002/008 kept in full. Delivers 3 of the 5 areas the case names; the README must say so plainly.
-- **Sprint Profile amendments (Pro-plan token budget):** planning is **one** `planner` invocation per feature (spec+plan+tasks together); `/sdd-clarify` only for **002 and 005**; **SP-5 → a single `combined` reviewer for every feature**.
-- **Next cuts if 001 overruns:** 005 entirely, then 003's side detail panel.
-- ADR-0001 layering; money = signed integer cents; `America/New_York`; jose HS256 8 h cookie; teal on slate + Geist; pnpm via corepack. `viewer` role out of scope.
-- **Prisma 7 ≠ Prisma 6** (Art. 14, `plan.md` §7.2): needs `prisma.config.ts`, a **mandatory** driver adapter **`@prisma/adapter-pg@7.10.1`** (Art. 10 justified), explicit generator `output`, client imported from the generated folder, and `migrate dev` no longer runs `generate`. This mispriced 000 by +90 %.
-- `prisma` CLI `latest` = **8.0.0-rc.33** — always pin `@7.10.1`. Every other ADR-0002 pin verified on the registry 2026-11-09.
-- 000 closes at 🚦 G-Merge on green CI + a working Vercel **Preview**; production (AC-000-12b) deferred until OQ-008 is granted. Preview shares the Neon primary. Cut **C1 taken**: CI is 2 jobs, not 6.
-- axe deferred 000 → 003 with the NFR-003 matrix. TD-008 carried forward, not closed.
+- **Scope cut** (top of `docs/roadmap.md`): 004 and 006 **CUT**, 007 dissolved into 008, 003 Must-only, 005 reduced to internal transfer + idempotency + BR-002. Delivers **3 of the 5 areas** the case names; the README must say so plainly.
+- **Sprint Profile amendments:** planning is **one** planner invocation per feature; `/sdd-clarify` only for 002 and 005; **one `combined` reviewer** per feature.
+- **Cut C1 taken** in 001: sidebar is **3 items** (Home, Transactions, Move money), not FR-004's 5 — 004 and 006 are cut, so two links would never resolve. `AC-001-13` amended.
+- Money = signed integer cents (`Int`); `America/New_York`; internal transfers excluded (BR-011); every repository method takes `businessId`; jose HS256 httpOnly cookie 8 h, no refresh; teal/slate + Geist.
+- **Prisma 7:** `prisma.config.ts`, mandatory `@prisma/adapter-pg`, explicit generator `output`, client imported from `src/generated/prisma`, `migrate dev` does **not** generate. CLI `latest` is `8.0.0-rc.33` — always pin `@7.10.1`.
+- ADR-0002 amended with install-time resolutions: `pnpm@11.28.9`, `typescript@5.9.3`, `@prisma/adapter-pg@7.10.1`, `@date-fns/tz@1.5.0`, `next-themes@0.4.6`.
+- `.gitattributes` (`* text=auto eol=lf`) added — before it, `pnpm lint` could not pass on Windows at all.
 
 ## Open / blocking
-- **OQ-008:** production-deploy authorisation still **not** granted (Art. 9).
-- **T-13 is human-gated:** `gh` is absent (OQ-007) — the human opens the PR in the GitHub web UI.
-- **MCP:** `.mcp.json` has `playwright`, `neon` (http, `?projectId=sweet-feather-13830390`) and `chrome-devtools` (`@1.12.0`, `--no-usage-statistics --no-performance-crux --redactNetworkHeaders`; both Google-facing defaults are ON upstream and the CrUX call would leak our Preview URLs). **Needs the human's trust dialog + a Claude Code restart.**
-- Neon: human logged in; project `sweet-feather-13830390`, Postgres 18, us-east-1. `postgres:18` image already pulled locally.
-- **RSK-04:** Neon autosuspends after 5 min; NFR-001 must be measured warm, with the cold figure reported honestly.
+- **T-15 needs the human:** paste Neon's **direct/unpooled** string as `DIRECT_DATABASE_URL` (the pooled one cannot run `migrate deploy` — session advisory locks), and add `SESSION_SECRET` to Vercel for **Production and Preview**.
+- **T-16 needs the human:** `gh` is absent (OQ-007) — the PR is opened in the GitHub web UI. It must produce a real **Preview**, which closes 000's permanently-unverified AC-000-12a.
+- **000 debts carried in:** AC-000-12a never verified (no Preview existed); `/_dev/boom` is still public in production; no automated test carries the `AC-000-07` id; no favicon (console 404 on every page).
+- **MCP:** `playwright` and `chrome-devtools` **failed to connect this session** (30 s timeout) — `pnpm test:e2e` is unaffected (local Playwright), but ad-hoc browser checks are not available until they reconnect. `neon` MCP needs auth.
+- **Branch protection on `main`** can only be configured after the first CI run has named its checks.
 
 ## Learnings
-- A spec cannot overrule the brief or the roadmap with an `ASM`; amend **those** documents too.
-- Estimate against the vendor's *current* major version, not the remembered one — Prisma 7 cost +90 % on the best-specified feature.
-- Verify flags by running `--help`, not from a README: `chrome-devtools-mcp`'s real options are `--usageStatistics` / `--performanceCrux`, both defaulting to true.
-- `neon init` does far more than write an MCP entry; for a governed harness, write the entry by hand.
-- Windows PowerShell 5.1 shows UTF-8 docs as mojibake; the files are fine.
+- Verify by breaking it: the lint guardrail, the 503 path, the non-vacuous integration test and the connection-leak fix were all proved by making them fail first.
+- 000 shipped with a real defect no AC caught (a `PrismaClient` per request, 1→27 connections). A lazy proxy without a module-level memo is a trap.
+- A spec cannot overrule the brief or the roadmap with an `ASM`; amend those documents too.
+- `next dev`/`next build` append their own rules block to `AGENTS.md` — disabled via `agentRules: false`.
 
 ## Next step
-Implementer: T-01…T-03 → **T-04 (riskiest: Prisma 7 setup, 30 min)** → T-05…T-11 → T-12 (2-job CI) → T-13 (human opens the PR) → T-14. Then `/sdd-validate 000 combined` → 🚦 G-Merge. Tomorrow 09:00: feature 001 with the collapsed one-invocation planning.
+Finish T-08/T-09 → T-10…T-14 → 🛑 T-15 and T-16 with the human → `/sdd-validate 001 combined` → 🚦 G-Merge. Then 002.

@@ -69,6 +69,21 @@ NFR needs a capacity clause.
    README "next step", which ADR-0001's layering keeps cheap to reach (ASM-020).
 6. **Cost:** the USD 0 constraint of KICKOFF §3.10 is **upheld**. No Art. 9 cost approval is needed.
 
+### Amendment 1 — pooled vs direct connection strings (feature 001, 2026-11-10)
+
+Neon issues **two** strings per database and they are not interchangeable. Feature 001 is the first
+to need both, so the rule is recorded here rather than rediscovered under time pressure:
+
+| Variable | Neon host | Used by | Why |
+|---|---|---|---|
+| `DATABASE_URL` | the **`-pooler`** host | the running application (`@prisma/adapter-pg`) | A serverless function may be created per request, so connections must come from Neon's PgBouncer pool. Pointing the runtime at the direct host exhausts the connection limit under even light traffic — the same class of defect AC-001-22 fixed locally |
+| `DIRECT_DATABASE_URL` | the host **without** `-pooler` | the Prisma CLI only (`migrate deploy`, `migrate status`) | PgBouncer runs in transaction-pooling mode, where the session-level statements and advisory locks a migration needs are unavailable. `prisma migrate` against a `-pooler` host fails or, worse, half-applies |
+
+`prisma.config.ts` resolves the CLI datasource as `DIRECT_DATABASE_URL ?? DATABASE_URL`, so the
+variable is **optional locally** (Docker Compose has no pooler) and **required for Neon**. The
+`-pooler` substring in the host is the thing to check by eye before running any migration; it is
+also why T-15 is human-gated. `.env.example` carries both with empty placeholders and this rationale.
+
 Rationale in one sentence (SP-7): Neon is the only candidate that keeps the demo alive for free
 after submission while adding zero deployment surface before the deadline — the discarded
 alternative, Railway, would have put the evaluator's link on a 30-day clock tied to the human's

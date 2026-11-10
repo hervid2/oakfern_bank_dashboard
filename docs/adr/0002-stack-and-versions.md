@@ -94,6 +94,33 @@ non-zero with `ERR_PNPM_IGNORED_BUILDS` and Prisma's engines are never placed. C
 `@axe-core/playwright`, `@date-fns/tz`, `lucide-react` and `sonner` remain unresolved: none is needed
 by feature 000, and the axe scan moved to feature 003. **TD-008 stays open.**
 
+### Amendment 2 — versions resolved at install time (feature 001, 2026-11-10)
+
+Feature 001 installed the seed runner, the date/time helper and the whole shadcn flow, so the rest
+of ADR-0002's "verify at install time" rows are now resolved. Every version below was read from the
+npm registry at install time (Art. 14) and is pinned exactly, no `^`.
+
+| Package | Resolved pin | Purpose and why this pin |
+|---|---|---|
+| **`tsx`** | **`4.23.15`** | Seed runner: `pnpm db:seed` is `tsx prisma/seed.ts`. This is **ASM-001-12's pre-authorised fallback, and it is the path that was actually executed** — the primary option (running the TypeScript seed directly under Node 22's type-stripping) failed, so the fallback was taken as the assumption allowed. Not a new decision, but recorded here because `tsx` is now a committed devDependency |
+| **`lucide-react`** | **`1.70.0`** | The icon set ADR-0002 already chose; `1.70.0` is the registry `latest`. The 1.x line is the current stable one |
+| **`radix-ui`** | **`1.8.1`** | ⚠️ **Correction to a plan assumption.** `plan.md` assumed the per-primitive packages (`@radix-ui/react-dialog`, `@radix-ui/react-slot`, …). The shadcn `4.23.0` `radix` base does not use them: it emits `import { Slot } from 'radix-ui'` against the **umbrella** `radix-ui` package. One dependency instead of a growing list, and no risk of two primitives drifting to incompatible versions |
+| **`class-variance-authority`** | **`0.7.1`** | Variant API that every shadcn component's `cva(...)` call needs. Mandatory for the chosen component flow, so "don't add it" was not available |
+| **`cn`** | **`0.5.2`** | shadcn's own `clsx` + `tailwind-merge` drop-in, emitted by the CLI as `import { cn } from 'cn'`. **This is why there is no `src/lib/utils.ts`**: the classic shadcn `cn` helper file is no longer generated, and inventing one to re-export the package would be dead code |
+| **`tw-animate-css`** | **`1.4.0`** | Tailwind v4 replacement for `tailwindcss-animate`; shadcn's Tailwind v4 output imports it from `globals.css`. Already named in ADR-0002's risk table as part of the scaffold |
+| **`next-themes`** | **`0.4.6`** | FR-005 light/dark with no flash on first paint (AC-001-14). The alternative — a hand-written `localStorage` + inline-script theme switcher — is the exact class of pre-hydration bug this package exists to avoid, on a 24 h budget |
+| **`@date-fns/tz`** | **`1.5.0`** | BR-009: every daily/monthly aggregation is computed in `America/New_York`. ADR-0002 made this conditional on "if a tz helper is needed"; `src/server/domain/time.ts` needs one, and hand-rolled DST arithmetic is the bug class BR-009 exists to prevent |
+
+**`shadcn` is not a runtime dependency.** The `4.23.0` CLI added itself to `dependencies` when it
+ran, which contradicts ADR-0002's "CLI only; components are copied into the repo". It was removed
+deliberately: it is invoked with `pnpm dlx shadcn@4.23.0` and shipping a scaffolding CLI in a
+production bundle has no justification under Art. 10.
+
+**TD-008 is now partly closed.** Resolved: `@date-fns/tz@1.5.0` and `lucide-react@1.70.0`. Still
+open: **`@axe-core/playwright`**, deferred to feature 003 with the NFR-003 axe scan, and
+**`sonner`**, which no screen in 001 needs — the first toast appears with money movement in
+feature 005. Neither is guessed anywhere in the repository.
+
 ## Consequences
 
 **Positive**

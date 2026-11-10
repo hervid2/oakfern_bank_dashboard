@@ -37,6 +37,22 @@ env:
   # docker-compose.yml is a local-Windows workaround only (a native
   # postgresql-x64-18 service owns 5432 on the developer's machine).
   DATABASE_URL: 'postgresql://oakfern:oakfern_local_dev@localhost:5432/oakfern?schema=public'
+  # NOT A SECRET either, and deliberately not a GitHub secret, for the same
+  # reason as DATABASE_URL above: it signs only the ephemeral HS256 session
+  # cookies (ADR-0004) of throwaway CI runs against a throwaway database. It
+  # grants access to nothing, so putting it in the repository costs nothing and
+  # keeps the workflow reproducible by anyone who forks it. Real secrets live in
+  # Vercel's Production and Preview environments only (AC-001-19).
+  #
+  # WORKFLOW level, not job level, for the same reason as DATABASE_URL: the
+  # variable must be in scope for everything a job may spawn. `pnpm test:e2e`
+  # needs it because playwright.config.ts's `webServer` inherits this
+  # environment and the suite signs a visitor in through "Continue as demo",
+  # which mints a real HS256 cookie; `src/lib/env.ts` and `src/lib/session.ts`
+  # validate it lazily (>= 32 chars, no default), so without it that request
+  # 503s and check 6 fails. Declaring it once here also means a future job --
+  # or a future route touched by `pnpm build` -- cannot silently inherit a gap.
+  SESSION_SECRET: 'ci-only-not-a-secret-session-signing-key-32plus'
   # corepack must never stop to ask whether it may download pnpm.
   COREPACK_ENABLE_DOWNLOAD_PROMPT: '0'
   NEXT_TELEMETRY_DISABLED: '1'
@@ -136,6 +152,14 @@ jobs:
         # checks below -- the integration test asserts a real `SkeletonCheck`
         # table and the e2e health test asserts a 200 from /api/health.
         run: pnpm exec prisma migrate deploy
+
+      - name: Seed the demo workspace
+        # `migrate deploy` applies migrations and nothing else -- in Prisma 7 it
+        # never runs the seed. The e2e suite signs a visitor in through
+        # "Continue as demo", which resolves the FR-036 seeded demo user, so an
+        # unseeded database fails check 6. The seed is idempotent (it replaces
+        # the whole demo workspace) and exits 1 on any of its five self-checks.
+        run: pnpm db:seed
 
       - name: Check 5 - integration tests
         run: pnpm test:int

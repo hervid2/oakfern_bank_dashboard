@@ -83,7 +83,13 @@
   - `amountCents != 0` and is an integer (BR-001);
   - `status = 'posted'` implies `postedAt != null`; `status = 'pending'` implies `postedAt = null` and `settleAt != null` (BR-004);
   - `method = 'internal'` implies `transferId != null` and `counterpartyId = null`;
-  - `method in ('ach','wire')` implies `counterpartyId != null` and `amountCents < 0` (the MVP only sends external money);
+  - `method in ('ach','wire')` implies `counterpartyId != null` and, **for user-created movements
+    only**, `amountCents < 0` (the MVP only *sends* external money). **Amended 2026-11-10
+    (ASM-001-06, feature 001):** seeded *historical* rows may carry ACH/wire **inflows**
+    (`amountCents > 0`) — a business with no incoming ACH is not realistic, and the approved UI-02
+    wireframe shows one ("Stripe payout · ACH · +$48,210.00"). The negative-amount rule therefore
+    belongs to the write path (`services`), not to the table; the seed is the only other writer and
+    it is explicitly exempt. Amended here rather than overruled in a spec, per Art. 9;
   - `method = 'card'` implies `cardId != null` and `amountCents < 0`;
   - `idempotencyKey` is unique within a business when present (BR-006);
   - `|amountCents| <= 25_000_000` for user-created movements (BR-007);

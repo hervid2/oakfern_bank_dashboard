@@ -1,9 +1,21 @@
-// Oakfern schema — feature 000 (walking skeleton).
+// Oakfern schema — feature 001 (domain-data-shell).
 //
-// Prisma 7 shape (plan.md §3, §7.2):
+// Prisma 7 shape (000 plan.md §3, §7.2):
 //   - the datasource has NO `url`; it is resolved in `prisma.config.ts`;
 //   - the generator is `prisma-client` with an explicit `output`, and the
 //     client is imported from that folder, not from `@prisma/client`.
+//
+// Non-negotiables encoded here (AGENTS.md, spec 001 §6.1):
+//   - every monetary column is `Int` — signed integer USD cents (BR-001,
+//     ADR-0003). No Float, Decimal, BigInt or Numeric anywhere;
+//   - `Account` has NO balance column: both balances are derived by
+//     `src/server/domain/balances.ts` from the ledger (BR-002);
+//   - `direction` (in/out) is derived from the sign of `amountCents` and is
+//     never stored (ADR-0003 §2);
+//   - internal transfer legs are identifiable without a join
+//     (`Transaction.method = internal`) and are never categorised (BR-011);
+//   - every per-business table carries `businessId`, which is what every
+//     repository method filters on (NFR-005, anti-IDOR).
 
 datasource db {
   provider = "postgresql"
@@ -14,11 +26,215 @@ generator client {
   output   = "../src/generated/prisma"
 }
 
-/// Throwaway table that proves migrate + generate + connect agree (AC-000-05,
-/// AC-000-10). No business code references it and it has NO numeric column, so
-/// BR-001 (money is integer cents) cannot be pre-violated. Feature 001's
-/// migration supersedes or removes it (ASM-023).
-model SkeletonCheck {
-  id        String   @id @default(uuid())
+enum UserRole {
+  admin
+  viewer
+}
+
+enum AccountType {
+  checking
+  savings
+  treasury
+}
+
+enum TransactionStatus {
+  pending
+  posted
+  canceled
+  failed
+}
+
+enum TransactionMethod {
+  ach
+  wire
+  card
+  internal
+  check
+  fee
+  interest
+}
+
+enum CounterpartyKind {
+  recipient
+  merchant
+}
+
+enum CardFormFactor {
+  virtual
+  physical
+}
+
+enum CardStatus {
+  active
+  frozen
+}
+
+enum CategoryDirection {
+  in
+  out
+  both
+}
+
+/// Tenant root. Everything a business owns cascades from here, so a demo reset
+/// is one delete per root row.
+model Business {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
   createdAt DateTime @default(now())
+
+  users          User[]
+  accounts       Account[]
+  transactions   Transaction[]
+  transfers      Transfer[]
+  counterparties Counterparty[]
+  cards          Card[]
+}
+
+model User {
+  id           String   @id @default(cuid())
+  businessId   String
+  email        String   @unique
+  name         String
+  role         UserRole @default(admin)
+  /// Null for the one-click demo user: there is no credentials form (ADR-0004).
+  passwordHash String?
+  createdAt    DateTime @default(now())
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@index([businessId])
+}
+
+/// No balance column, deliberately (BR-002).
+model Account {
+  id            String      @id @default(cuid())
+  businessId    String
+  name          String
+  type          AccountType
+  accountNumber String
+  routingNumber String
+  /// A column for honesty about scope; fixed in value for this case study.
+  currency      String      @default("USD")
+  openedAt      DateTime
+
+  business               Business      @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  transactions           Transaction[]
+  cards                  Card[]
+  transfersAsSource      Transfer[]    @relation("TransferSource")
+  transfersAsDestination Transfer[]    @relation("TransferDestination")
+
+  @@index([businessId, type])
+}
+
+/// Global, not per business: `key` is stable because URLs and chart drill-downs
+/// reference it (domain model §Category).
+model Category {
+  id        String            @id @default(cuid())
+  key       String            @unique
+  label     String
+  direction CategoryDirection
+  sortOrder Int
+
+  transactions            Transaction[]
+  counterpartyDefaultsFor Counterparty[] @relation("CounterpartyDefaultCategory")
+
+  @@index([sortOrder])
+}
+
+model Counterparty {
+  id                String           @id @default(cuid())
+  businessId        String
+  name              String
+  kind              CounterpartyKind
+  accountNumber     String?
+  routingNumber     String?
+  defaultCategoryId String?
+  createdAt         DateTime         @default(now())
+
+  business        Business      @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  defaultCategory Category?     @relation("CounterpartyDefaultCategory", fields: [defaultCategoryId], references: [id], onDelete: Restrict)
+  transactions    Transaction[]
+
+  @@unique([businessId, name])
+  @@index([businessId])
+}
+
+model Card {
+  id                String         @id @default(cuid())
+  businessId        String
+  accountId         String
+  holderName        String
+  formFactor        CardFormFactor
+  last4             String
+  status            CardStatus     @default(active)
+  /// Signed integer USD cents (BR-001).
+  monthlyLimitCents Int
+  createdAt         DateTime       @default(now())
+
+  business     Business      @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  account      Account       @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@index([businessId, accountId])
+}
+
+/// Exactly two legs per `Transfer`, enforced by the service and the seed rather
+/// than by the schema: one-to-many keeps the "legs sum to zero" query simple
+/// (plan §3.2).
+model Transfer {
+  id                   String   @id @default(cuid())
+  businessId           String
+  sourceAccountId      String
+  destinationAccountId String
+  /// Positive signed integer USD cents (BR-001). The two legs carry the signs.
+  amountCents          Int
+  idempotencyKey       String
+  createdAt            DateTime @default(now())
+
+  business           Business      @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  sourceAccount      Account       @relation("TransferSource", fields: [sourceAccountId], references: [id], onDelete: Cascade)
+  destinationAccount Account       @relation("TransferDestination", fields: [destinationAccountId], references: [id], onDelete: Cascade)
+  legs               Transaction[]
+
+  @@unique([businessId, idempotencyKey])
+  @@index([businessId, createdAt])
+}
+
+/// The ledger. Signed: inflows are positive, outflows negative.
+model Transaction {
+  id             String            @id @default(cuid())
+  businessId     String
+  accountId      String
+  /// Signed integer USD cents (BR-001, ADR-0003). Never Float or Decimal.
+  amountCents    Int
+  status         TransactionStatus
+  method         TransactionMethod
+  /// Always null on an internal leg (BR-011).
+  categoryId     String?
+  /// Always null on an internal leg (BR-011).
+  counterpartyId String?
+  cardId         String?
+  /// Non-null on an internal leg (BR-011).
+  transferId     String?
+  memo           String?
+  note           String?
+  idempotencyKey String?
+  createdAt      DateTime          @default(now())
+  settleAt       DateTime?
+  postedAt       DateTime?
+
+  business     Business      @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  account      Account       @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  category     Category?     @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  counterparty Counterparty? @relation(fields: [counterpartyId], references: [id], onDelete: Restrict)
+  card         Card?         @relation(fields: [cardId], references: [id], onDelete: Restrict)
+  transfer     Transfer?     @relation(fields: [transferId], references: [id], onDelete: Cascade)
+
+  @@unique([businessId, idempotencyKey])
+  @@index([businessId, postedAt])
+  @@index([businessId, status, settleAt])
+  @@index([businessId, accountId, postedAt])
+  @@index([businessId, categoryId])
+  @@index([businessId, method, postedAt])
 }

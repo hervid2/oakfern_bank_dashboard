@@ -11,10 +11,14 @@ import { defineConfig } from 'vitest/config';
  *   PostgreSQL through the generated Prisma client, so it gets a longer
  *   timeout and never runs as part of `pnpm test`.
  *
- * Coverage **reports** on `src/server/domain` with **no threshold** (CL-05):
- * feature 000 ships that directory empty on purpose, and a threshold over an
- * empty directory would fail CI for no reason. Thresholds arrive with the first
- * real domain code in feature 001.
+ * Coverage is **enforced** on `src/server/domain` at **80 %** (ASM-001-14,
+ * task T-09). Feature 000 shipped that directory empty and deliberately left
+ * the threshold off, because a threshold over an empty directory fails CI for no
+ * reason. 001 fills it with the money, balance, time and error primitives, so
+ * the threshold is switched on here and met by writing tests — never by lowering
+ * it (plan §8 R-8). The scope stays `src/server/domain` on purpose: it is the
+ * code where a wrong number is a wrong number everywhere, and a global
+ * percentage over adapters would be a figure nobody could act on.
  */
 export default defineConfig({
   resolve: {
@@ -56,7 +60,12 @@ export default defineConfig({
       reporter: ['text', 'json-summary'],
       reportsDirectory: './coverage',
       include: ['src/server/domain/**/*.ts'],
-      thresholds: undefined,
+      thresholds: {
+        statements: 80,
+        branches: 80,
+        functions: 80,
+        lines: 80,
+      },
     },
   },
 });

@@ -1,4 +1,13 @@
 @import 'tailwindcss';
+@import 'tw-animate-css';
+
+/**
+ * `dark:` is driven by a class, not by the media query, because FR-005 requires
+ * a manual toggle on top of the OS preference. `next-themes` puts `.dark` on
+ * `<html>`; without this variant every `dark:` utility in the shadcn primitives
+ * would silently follow the OS instead of the user's choice.
+ */
+@custom-variant dark (&:is(.dark *));
 
 /**
  * Oakfern design tokens — `docs/ux/ui-brief.md` §1.1 only.
@@ -44,6 +53,23 @@
 
   /* One radius across cards, inputs, buttons and dialogs. */
   --radius: 0.625rem;
+
+  /**
+   * Surfaces and controls the shadcn primitives expect. Added in 001, derived
+   * from the §1.1 palette above — not a second palette: every value is a step
+   * of the same cool slate, and `--ring` is the teal accent itself so the focus
+   * ring stays the one non-money use of colour.
+   */
+  --card: oklch(1 0.001 240);
+  --card-foreground: oklch(0.21 0.02 250);
+  --popover: oklch(1 0.001 240);
+  --popover-foreground: oklch(0.21 0.02 250);
+  --secondary: oklch(0.95 0.005 250);
+  --secondary-foreground: oklch(0.27 0.02 250);
+  --accent: oklch(0.94 0.007 240);
+  --accent-foreground: oklch(0.21 0.02 250);
+  --input: oklch(0.89 0.007 250);
+  --ring: oklch(0.48 0.09 192);
 }
 
 .dark {
@@ -66,6 +92,17 @@
   --chart-3: oklch(0.55 0.05 210);
   --chart-4: oklch(0.48 0.03 225);
   --chart-5: oklch(0.42 0.02 240);
+
+  --card: oklch(0.23 0.02 250);
+  --card-foreground: oklch(0.97 0.003 240);
+  --popover: oklch(0.23 0.02 250);
+  --popover-foreground: oklch(0.97 0.003 240);
+  --secondary: oklch(0.27 0.02 250);
+  --secondary-foreground: oklch(0.95 0.003 240);
+  --accent: oklch(0.29 0.02 250);
+  --accent-foreground: oklch(0.97 0.003 240);
+  --input: oklch(0.34 0.02 250);
+  --ring: oklch(0.66 0.09 192);
 }
 
 @theme inline {
@@ -83,8 +120,27 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
   --font-sans: var(--font-geist-sans);
   --radius-oakfern: var(--radius);
+}
+
+/* Native controls and scrollbars follow the resolved theme, not the OS. */
+html {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
 }
 
 body {
@@ -102,4 +158,16 @@ body {
 :focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
+}
+
+/* ui-brief §5: motion is decoration, so it is removed when it is unwelcome. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
