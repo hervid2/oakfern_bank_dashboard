@@ -25,13 +25,13 @@
 | FR-004 | — | 001 | AC-001-13 | `tests/e2e/shell.spec.ts` | ✅ |
 | FR-005 | — | 001 | AC-001-14 | `tests/e2e/shell.spec.ts` | ✅ |
 | FR-006 | — | 001 | AC-001-15 | `tests/e2e/shell.spec.ts` (375 / 768 / 1280 / 1440 px; no separate `responsive.spec.ts` in 001 — 003 adds one) | ✅ |
-| FR-007 | BR-001, BR-002 | 002 | AC-002-xx | `tests/unit/domain/balances.test.ts` · `tests/e2e/home.spec.ts` | ⬜ |
-| FR-008 | BR-008, BR-009, BR-011 | 002 | AC-002-xx | `tests/unit/domain/metrics.test.ts` | ⬜ |
-| FR-009 | BR-001, BR-002 | 002 | AC-002-xx | `tests/unit/domain/balances.test.ts` | ⬜ |
-| FR-010 | BR-008 | 002 | AC-002-xx | `tests/unit/domain/metrics.test.ts` | ⬜ |
-| FR-011 | BR-004, BR-005 | 002 | AC-002-xx | `tests/e2e/home.spec.ts` | ⬜ |
-| FR-012 | BR-001 | 002 | AC-002-xx | `tests/e2e/home.spec.ts` | ⬜ |
-| FR-012b | BR-002, BR-009 | 002 | AC-002-xx | `tests/unit/domain/balances.test.ts` | ⬜ |
+| FR-007 | BR-001, BR-002 | 002 | AC-002-01, AC-002-02 | `tests/integration/overview.test.ts` · `tests/unit/amount.test.ts` | ⬜ |
+| FR-008 | BR-008, BR-009, BR-011 | 002 | AC-002-06…AC-002-10 | `tests/unit/metrics.test.ts` · `tests/unit/amount.test.ts` | ⬜ |
+| FR-009 | BR-001, BR-002 | 002 | AC-002-18, AC-002-19, AC-002-20 | `tests/integration/overview.test.ts` · `tests/e2e/home.spec.ts` | ⬜ |
+| FR-010 | BR-008 | 002 | AC-002-11…AC-002-17 | `tests/unit/metrics.test.ts` · `tests/integration/overview.test.ts` | ⬜ |
+| FR-011 | BR-004, BR-005 | 002 | AC-002-21, AC-002-22 | `tests/integration/overview.test.ts` · `tests/e2e/home.spec.ts` | ⬜ **Read-only only** — cancellation out of scope (`functional.md` Amendment C-1; 005 CUT) |
+| FR-012 | BR-001 | 002 | AC-002-23, AC-002-24, AC-002-25 | `tests/e2e/home.spec.ts` | ⬜ |
+| ~~FR-012b~~ | BR-002, BR-009 | ~~002~~ | **none — AC-002-03/04/05 withdrawn** | **none** | ⏸️ **Deferred, not delivered** (cut ladder L-4, `functional.md` Amendment C-2). No `cash-series.ts`, no `recharts` |
 | FR-013 | BR-001, BR-009 | 003 | AC-003-xx | `tests/unit/domain/filters.test.ts` · `tests/e2e/transactions.spec.ts` | ⬜ |
 | FR-014 | — | 003 | AC-003-xx | `tests/integration/transactions-query.test.ts` | ⬜ |
 | FR-015 | BR-009, BR-011 | 003 | AC-003-xx | `tests/integration/transactions-query.test.ts` | ⬜ |
@@ -113,10 +113,10 @@ the edge case (`docs/requirements/business-rules.md`).
 | BR-005 Cancel pending | 005 | `tests/integration/cancel-payment.test.ts` | ⬜ |
 | BR-006 Idempotency | 005 | `tests/integration/idempotency.test.ts` | ⬜ |
 | BR-007 Limits | 005 | `tests/unit/domain/transfer-rules.test.ts` · `tests/integration/daily-limit.test.ts` | ⬜ |
-| BR-008 Burn and runway | 002, 004 | `tests/unit/domain/metrics.test.ts` | ⬜ |
+| BR-008 Burn and runway | 002 (004 CUT) | `tests/unit/metrics.test.ts` (flat `tests/unit/`, like 001) | ⬜ |
 | BR-009 Time zone and ranges (incl. both DST changes) | 001–005 | `tests/unit/time.test.ts` | 🟡 001 green |
 | BR-010 Card status and limit | 006 | `tests/unit/domain/cards.test.ts` | ⬜ |
-| BR-011 Internal transfers excluded from metrics | 001 (seed legs), 002, 004 | `tests/integration/seed.test.ts` (001) · `tests/unit/domain/metrics.test.ts` (002) | 🟡 001 green |
+| BR-011 Internal transfers excluded from metrics | 001 (seed legs), 002 (004 CUT) | `tests/integration/seed.test.ts` (001) · `tests/unit/metrics.test.ts` (002) | 🟡 001 green |
 
 ## NFR coverage
 
@@ -132,7 +132,7 @@ the edge case (`docs/requirements/business-rules.md`).
 | NFR-008 Browsers (chromium + webkit) | 007 | Playwright project matrix in CI | ⬜ |
 | NFR-009 Observability (money log, health, error pages) | 000, 001, 005, 007 | `tests/e2e/health.spec.ts` · `tests/e2e/shell.spec.ts` error/404/loading states (001) | 🟡 001 green |
 | NFR-010 Usability (empty/loading/error, confirmations) | 002, 003, 005, 007 | Reviewer B walkthrough screenshots | ⬜ |
-| NFR-011 Consistency (one source per figure) | 002, 004 | `tests/unit/domain/metrics.test.ts` agreement assertions + Reviewer A trace | ⬜ |
+| NFR-011 Consistency (one source per figure) | 002 (004 CUT) | `tests/unit/metrics.test.ts` + `tests/integration/overview.test.ts` agreement assertions · the AC-002-30 `git grep` over `src/components` · Reviewer trace | ⬜ |
 
 ## CR coverage (the assignment email)
 

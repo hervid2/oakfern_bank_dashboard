@@ -139,7 +139,117 @@ flowchart LR
 | Design files | **N/A** — no Figma. The wireframes below plus the `ui-system` skill are the design source of truth (human's decision, for time reasons). |
 | Screenshots | Produced in feature 007/008 (light and dark) for the README |
 
-### UI-02 Home — desktop (>= 1280 px)
+### Amendment 1 — UI-02 Home as it actually ships (2026-11-10)
+
+> **Authorised explicitly by the Technical Director at 🚦 G-SpecPlan for feature 002, 2026-11-10.**
+> The original UI-02 Home wireframes below are **kept visible as the approved historical record**
+> and are **superseded** by this amendment; they are not overwritten. The UI-03 Transactions
+> wireframes are **unchanged** and still binding for feature 003.
+
+**What was removed from UI-02 Home, and why.**
+
+| # | Removed from the approved wireframe | Reason | Trace |
+|---|---|---|---|
+| 1 | **CASH FLOW · last 6 months** panel (bars + `3M/6M/12M` selector + bar → UI-03 drill-down) | FR-021 / FR-024 / FR-025 belong to feature **004 `cash-insights`, CUT 2026-11-09** | `docs/roadmap.md`; OQ-002-04 A |
+| 2 | **SPENDING BY CATEGORY · last 30 days** panel | FR-023, same cut feature **004** | `docs/roadmap.md`; OQ-002-04 A |
+| 3 | **Cash sparkline** under the TOTAL CASH figure | FR-012b **deferred** by cut ladder **L-4** at the same gate; no time series ships, and `recharts` stays uninstalled | `docs/requirements/functional.md` Amendment C-2; `specs/002-account-overview/plan.md` §8 |
+| 4 | **PENDING PAYMENTS** panel with its count and `[Cancel]` buttons | Cut ladder **L-2**: the pending rows move **into** the recent-transactions list. The `[Cancel]` control is gone because FR-032 lives in feature **005 `move-money`, CUT 2026-11-10** — a dead control is worse than an honest sentence | `docs/requirements/functional.md` Amendment C-1; OQ-002-01 A |
+| 5 | **"↑ Move money"** primary CTA (desktop header and the sticky mobile button) | 005 is cut, so `/move-money` is a placeholder; a primary CTA that leads nowhere is the worst signal on the screen the evaluator judges | OQ-002-03 A |
+| 6 | **"↑ 5.1 % vs prev" / "↓ 2.3 % vs prev"** deltas on the in/out tiles | Not required by any FR, and a second 30-day window costs time the box does not have | ASM-002-04; cut ladder L-1 |
+| 7 | **5-item sidebar** (Home, Transactions, Accounts, Payments, Cards) | Already superseded in feature 001 by **Cut C1**: the sidebar is **3 items** — Home, Transactions, Move money (`AC-001-13` amended) | `MEMORY.md`; spec 001 |
+
+**What is unchanged:** the KPI order (total cash → money in → money out → runway), the accounts card
+list with masked numbers and an available-balance line, the recent-transactions list with "View
+all → UI-03", the identity rules of §1 (deep-teal single accent, green/red reserved for money
+semantics and always paired with a sign, Geist, `tabular-nums`), and the §6 responsive and
+accessibility rules. `docs/ux/ui-brief.md` §5's "Recharts via shadcn charts" row is **dormant** for
+this delivery: nothing charted ships, so no charting library is installed.
+
+#### UI-02 Home as shipped — desktop (>= 1280 px)
+
+```text
+┌──────────────────────────────────────────────────────────────────────────────────────────────┐
+│ ┌──────────────┐ ┌─────────────────────────────────────────────────────────────────────────┐ │
+│ │ ◆ oakfern    │ │                                            ┃ ◑ theme ┃ HC  Hernán  ▾   │ │
+│ ├──────────────┤ └─────────────────────────────────────────────────────────────────────────┘ │
+│ │ ▸ Home       │                                                                             │
+│ │   Transact…  │   Good morning, Hernán                                                      │
+│ │   Move money │   Tuesday, Nov 10 · ET                   (no "Move money" CTA — 005 is cut) │
+│ │              │                                                                             │
+│ │              │   ┌──────────────────┬──────────────────┬──────────────────┬─────────────┐  │
+│ │              │   │ TOTAL CASH       │ MONEY IN (30D)   │ MONEY OUT (30D)  │ RUNWAY      │  │
+│ │              │   │ $1,284,310.55    │ +$312,480.00     │ −$198,120.44     │ 18.4 months │  │
+│ │              │   │ 4 accounts       │ excl. internal   │ excl. internal   │ burn $69.4k │  │
+│ │              │   └──────────────────┴──────────────────┴──────────────────┴─────────────┘  │
+│ │              │          (no sparkline — L-4)        (no "vs prev" deltas — ASM-002-04)     │
+│ │              │                                                                             │
+│ │              │   ┌─────────────────────────────────────────┬─────────────────────────────┐ │
+│ │              │   │ RECENT TRANSACTIONS         View all →  │ ACCOUNTS                    │ │
+│ │              │   │ ⬤ N  Northwind Supply  ACH             │ Operating · checking        │ │
+│ │              │   │      pending · Expected Nov 12          │ ••••4821                    │ │
+│ │              │   │                          −$12,400.00    │ $612,044.10                 │ │
+│ │              │   │ ⬤ S  Stripe payout    Revenue          │ avail. $598,844.10          │ │
+│ │              │   │      Nov 10 · ACH        +$48,210.00    │ ─────────────────────────── │ │
+│ │              │   │ ⬤ A  AWS              Cloud            │ Payroll · checking ••••7310 │ │
+│ │              │   │      Nov 9 · Card         −$9,142.77    │ $142,880.00                 │ │
+│ │              │   │ ⬤ G  Gusto payroll    Payroll          │ avail. $142,880.00          │ │
+│ │              │   │      Nov 8 · ACH        −$46,200.00     │ ─────────────────────────── │ │
+│ │              │   │ ⬤ →  To Reserve       Internal         │ Reserve · savings ••••1192  │ │
+│ │              │   │      Nov 8 · Internal   −$50,000.00     │ $228,500.00                 │ │
+│ │              │   │ ⬤ F  Figma            Software         │ avail. $228,500.00          │ │
+│ │              │   │      Nov 7 · Card        −$1,440.00     │ ─────────────────────────── │ │
+│ │              │   │ … (>= 8 rows, newest first)             │ Treasury ••••0574           │ │
+│ │              │   │ ───────────────────────────────────────  │ $300,886.45                 │ │
+│ │              │   │ Pending payments are read-only in this  │ avail. $300,886.45          │ │
+│ │              │   │ round — cancelling is not available.    │                             │ │
+│ │              │   └─────────────────────────────────────────┴─────────────────────────────┘ │
+│ └──────────────┘                                                                             │
+└──────────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+Notes that are requirements: the pending row carries a **text** badge (`pending · Expected Nov 12`),
+not a colour alone (NFR-003); the honest sentence is a **footnote of the list**, with **no button,
+link or disabled control** anywhere (AC-002-22); internal legs are listed and labelled `Internal`
+even though BR-011 keeps them out of the two flow tiles (AC-002-25).
+
+#### UI-02 Home as shipped — mobile (375 px)
+
+```text
+┌───────────────────────────────┐
+│ ☰  ◆ oakfern         ◑   HC   │   ☰ opens the sidebar as a sheet (3 items)
+├───────────────────────────────┤
+│ Good morning, Hernán          │   no sticky CTA — 005 is cut
+│ TOTAL CASH                    │
+│ $1,284,310.55                 │   no sparkline (L-4)
+│ ───────────────────────────── │
+│ MONEY IN (30D)  +$312,480.00  │   KPI tiles stack 1-up
+│ MONEY OUT (30D) −$198,120.44  │
+│ RUNWAY          18.4 months   │
+│ ───────────────────────────── │
+│ RECENT            View all →  │
+│ Northwind Supply  −$12,400.00 │
+│ pending · Expected Nov 12     │
+│ Stripe payout     +$48,210.00 │
+│ Nov 10 · ACH · Revenue        │
+│ AWS                −$9,142.77 │
+│ Nov 9 · Card · Cloud          │
+│ Pending payments are          │
+│ read-only in this round.      │
+│ ───────────────────────────── │
+│ ACCOUNTS                      │
+│ Operating ••••4821            │   accounts as a card list, not a table
+│ $612,044.10                   │
+│ avail. $598,844.10            │
+└───────────────────────────────┘
+```
+
+Figures above are illustrative; every number comes from `getOverview` and no component recomputes
+one (NFR-011, AC-002-30). `scrollWidth <= innerWidth` is asserted in CI at 375 px and 1280 px
+(AC-002-31) — the laptop is never the authority.
+
+---
+
+### UI-02 Home — desktop (>= 1280 px) · **SUPERSEDED by Amendment 1 (kept as the approved record)**
 
 ```text
 ┌──────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -193,7 +303,7 @@ flowchart LR
 └──────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### UI-02 Home — mobile (375 px)
+### UI-02 Home — mobile (375 px) · **SUPERSEDED by Amendment 1 (kept as the approved record)**
 
 ```text
 ┌───────────────────────────────┐
@@ -300,3 +410,10 @@ flowchart LR
 > Home, charts inside Home, 5-item sidebar, right-hand detail panel on Transactions), together with
 > OQ-004 (deep-teal single accent on cool slate neutrals) and OQ-005 (**Geist** via `next/font`).
 > These are decided; agents must not re-open them without an amendment.
+>
+> **Amendment 1 (2026-11-10) is that amendment, for UI-02 Home only** — authorised explicitly by the
+> Technical Director at 🚦 G-SpecPlan for feature 002 after features 004 and 005 were cut. Read it
+> above: the UI-02 Home blocks in this section are the historical approved record, and the "as
+> shipped" wireframes in Amendment 1 are what feature 002 builds. **UI-03 Transactions is untouched
+> and still binding.** No further change to this section without a new, dated, human-approved
+> amendment.

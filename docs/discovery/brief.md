@@ -105,7 +105,7 @@ user invitations · real MFA · invoicing · full accounting · reconciliation �
 | Milestone | Time (America/New_York) |
 |---|---|
 | Project start | 2026-11-09 ~17:00 |
-| **Hard deadline (submission)** | **2026-11-10 18:00** |
+| **Hard deadline (submission)** | **2026-11-10 16:45 ET** — corrected by the Technical Director on 2026-11-10 at 10:45 ET; the "18:00" originally recorded here was wrong. Derived clock rule: **feature 008 `ship` starts at 15:30 ET** (`docs/roadmap.md`) |
 | Early-submission goal | If < 6 h remain when 005 is done, skip 006 and go to 007–008 |
 
 Per-feature timeboxes: see `docs/roadmap.md`. Cut order (SP-6): 006 → Could items → 004 reduced to
@@ -252,7 +252,7 @@ Detail plus ASCII wireframes of Home and Transactions: `docs/ux/ui-brief.md`.
 
 | ID | Risk | Likelihood | Impact | Mitigation |
 |---|---|---|---|---|
-| RSK-01 | Not finishing before 2026-11-10 18:00 ET | Medium | High | Timeboxes per feature, SP-6 scope cut, cut order 006 → Could → 004 to 2 charts → CSV → recategorize |
+| RSK-01 | Not finishing before 2026-11-10 **16:45** ET (corrected 2026-11-10) | Medium | High | Timeboxes per feature, SP-6 scope cut, cut order 006 → Could → 004 to 2 charts → CSV → recategorize |
 | RSK-02 | Deployment breaks at the end | Medium | High | Deploy in feature 000 (walking skeleton) and on every merge |
 | RSK-03 | Several evaluators mutate the same demo data at once | Medium | Medium | Shared demo workspace + "Reset demo data" + idempotent seed (ASM-012) |
 | RSK-04 | **Neon cold start.** Compute autosuspends after 5 min of inactivity, so the evaluator's first request pays a cold start — this can pull NFR-001 (Lighthouse Performance >= 85 on the deployed Home) below threshold if measured cold | High | Medium | Content-shaped skeletons on every data view (NFR-010); the NFR-001 Lighthouse run is performed on a **warmed** deployment and this is stated in the NFR verification method; the README documents the cold start honestly. Sources in ADR-0006 |
