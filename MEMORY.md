@@ -1,8 +1,8 @@
 # MEMORY.md — living status board (≤ 50 lines, no secrets)
 
-**Project:** Oakfern — banking dashboard (Post Oak Group case study) · **Stage:** feature `001-domain-data-shell`, implementing
+**Project:** Oakfern — banking dashboard (Post Oak Group case study) · **Stage:** 002 validated → 🚦 G-Merge → 008
 **Repo:** https://github.com/hervid2/oakfern_bank_dashboard · **Supreme Law:** `docs/governance/GENESIS.md`
-**Production (live, 000 shipped):** https://oakfernbankdashboard.vercel.app — `/api/health` 200 against Neon
+**Production (001 live):** https://oakfernbankdashboard.vercel.app — verified working, sign-in and all
 
 ## ⏰ DELIVERY DAY — 2026-11-10, deadline **16:45 ET** (corrected by the human at 10:45 ET)
 Earlier stamps here and in `docs/roadmap.md` were **invented** — read the clock from a tool, never guess.
@@ -20,29 +20,44 @@ AC-001-15's fix is now confirmed in three independent environments (Windows, Lin
 blocking. Vercel's runtime log reads `SESSION_SECRET is missing or shorter than 32 characters` even though
 the var shows on **both** Production and Preview rows in the Project tab. AC-001-23 was amended to be
 satisfied on Production, which it now is.
-🔧 **002 in progress** on `feat/002-account-overview` (off `feat/001-domain-data-shell`), one
-`implementer`, T-00…T-07, **hard stop 15:30**, pre-authorised to cut L-5 and the §8 ladder — **never L-3**.
+✅ **002 MERGED AND LIVE.** PR #3 merged 19:48Z, `main` → `fec01b6`, all four checks green including the
+Vercel deployment. **Production verified live 15:00**: $913,518.54 cash, +$254,746.64 in, −$281,636.79 out,
+18.0 months runway, recent list showing Nov 10 activity (F-01 fix live), no banner CTA (F-06 live),
+375 px `scrollWidth == innerWidth`, 0 elements past the edge, console 0 messages.
+✅ **002 IMPLEMENTED — T-00…T-07 in 29 min** (vs a 2 h 55 estimate), **no residual cut applied** (L-5 unused,
+so AC-002-19 ships). Branch `feat/002-account-overview` @ `eec8cd5`, off `4baf9cd` which is already in `main`.
+**PR #3 OPEN, MERGEABLE, CI GREEN on both jobs** (run 42882368058). Local gate: lint 0 · typecheck 0 ·
+unit 67 · integration 29 · build 0 · **e2e 25** · same seed hash. **27 of 28 active ACs proved**
+(AC-002-26 partial: skeleton asserted at source, not against a live Suspense fallback).
+⚠️ One line removed from `tests/e2e/shell.spec.ts` (001's `AC-001-18` Home-placeholder assertion, which 002 deletes) — **without it 001's suite would have gone red on merge**; the reviewer confirmed it was necessary and correctly scoped. **Components cannot import TYPES from `src/server`** (ESLint boundary rule); plan §6 assumed they could. Worth an ADR-0001 note.
+🔎 **`/sdd-validate 002 combined` done → PASS WITH FINDINGS** (`validation-combined.md`, evidence PNGs in
+`specs/002-account-overview/evidence/`): 0 blocker, 1 MAJOR, 5 minor. **All three acted on, pushed as
+`a5da5ac` / `e690de1` / `eafc4c3`** (remote head `eafc4c3`):
+ • **F-01 (MAJOR)** — `transactions.ts` ordered by `postedAt desc` and **Postgres sorts NULLs FIRST**, so the 8-row "recent" list filled with pending/canceled/failed rows of any age (one from September) while real posted activity never showed. **Every suite was green** — the e2e test only asserted `count >= 8`. Fixed to `createdAt desc`, new integration test proved red first. **This finding alone justifies the validation gate.**
+ • **F-06** — "Move money" CTA dropped (OQ-002-03). A test asserted it and would have passed **vacuously** after removal (`.last()` resolving to the sidebar link); inverted, not deleted.
+ • **Vercel build failure** — `src/generated/` is gitignored and only `postinstall` built it; Vercel **restored its build cache**, so install did nothing, `postinstall` never ran, `next build` could not resolve `@/generated/prisma/client`. Fixed: **`"build": "prisma generate && next build"`** (+ `AGENTS.md` row). **CI structurally cannot catch this** — it never has a cache to restore. Vercel's own Next+Prisma guide recommends only `postinstall`; Prisma's caching page is the right source.
+⚠️ **A stray local `pnpm start` silently invalidates an e2e run** (`reuseExistingServer: !CI` adopts it) and
+the failure looks like a product bug. Kill port 3000 before trusting a local e2e result.
+🔎 Open for 008's README: F-02 (burn understated 3× on a workspace under 3 months old), F-04 (AC-002-19/20/30 lack a test carrying their id), F-05 (`docs/traceability.md:28,29` cite a nonexistent `tests/unit/amount.test.ts`; 002 rows still ⬜), F-07/F-08 suggestions.
 🔥 **SESSION LIMIT BURNED ~70 min (12:20→13:30)**: two Opus agents launched at once after this file had warned twice. **One agent at a time, always.** Context window is NOT the constraint; the Pro-plan session limit is, and it is account-wide — switching sessions does not reset it.
 ⚠️ Vercel env vars inject **per deployment**: saving one changes nothing until a new build (the Redeploy button did not produce one; an empty commit did). **Never** detect a new build by Next chunk hashes — they are content hashes. Test behaviour. **008 will hit both.**
 
 ## Decided (do not re-litigate)
-- ✂️ **003 `transactions` is CUT (human, 11:30 ET).** The honest 002 estimate is **2 h 55 agent + 15 min human**, not the 1 h 55 the coordinator miscalculated (it subtracted L-2/L-4 from the Must-only baseline instead of the full one). 11:28 → 15:30 leaves ~4 h; 001's close (~45 min) + 002 (3 h 10) consumes it. **Delivers 1 of the 5 areas the case names — accounts.** The README must say so, with the reason, plus FR-011 read-only, ASM-002-02 and ASM-002-04.
-- ❌ **Cut L-3 is REJECTED** (human, 11:30): it would reduce the e2e sweep to 1280 px only. Today's single real defect was a 375 px overflow invisible on Windows — **never trade away the 375 px check for 15 minutes.** L-5 (drop the available-balance line, −10 min) stays available as an in-flight lever.
-- 🚦 **002 G-SpecPlan APPROVED 2026-11-10 ~11:20 ET** with the cut ladder **L-2** (pending payments folded into the recent list) and **L-4** (**sparkline dropped**) applied → box amended to **2 h**. Resolved: pending payments are **read-only, no dead control** (FR-011 note amended); **no `recharts`, no new dependency**; **no "Move money" CTA on Home** (005 is cut); Home ships **without** the cash-flow chart and spending-by-category panel, with a dated amendment in `docs/ux/ui-brief.md` §8. 002 branches from `feat/001-domain-data-shell` and rebases onto `main` after the 001 merge.
-- **Scope cut** (`docs/roadmap.md`): 004, 005 and 006 **CUT**, 007 dissolved into 008, 003 Must-only. Delivers **2 of the 5 areas** the case names — accounts and transactions; the README must say so plainly, with the reason.
-- **Sprint Profile:** **one** planner invocation per feature; **one `combined` reviewer** per feature. **Cut C1** in 001: sidebar is **3 items**, not FR-004's 5 — `AC-001-13` amended.
+- ✂️ **003 CUT (human, 11:30).** Do not reopen it — starting a 2 h 15 feature near the close is the mistake we avoided all day. ❌ **L-3 REJECTED**: it would cut the e2e sweep to 1280 px only, and today's one real defect was a 375 px overflow invisible on Windows. **Never trade the 375 px check for 15 minutes.**
+- 🚦 **002 G-SpecPlan APPROVED ~11:20** with **L-2** (pending folded into the recent list) and **L-4** (sparkline dropped). Resolved: FR-011 **read-only, no dead control**; **no `recharts`, no new dependency**; **no "Move money" CTA**; no 004 chart/category panels, recorded as `docs/ux/ui-brief.md` §8 **Amendment 1** with the original kept as superseded.
+- **Scope** (`docs/roadmap.md`): 003, 004, 005, 006 **CUT**, 007 dissolved into 008. Delivers **1 of the 5 areas** the case names — accounts. The README must say so plainly, with the reason.
 - Money = signed integer cents (`Int`); `America/New_York`; internal transfers excluded (BR-011); every repository method takes `businessId`; jose HS256 httpOnly cookie 8 h, no refresh; teal/slate + Geist.
 - **Prisma 7:** `prisma.config.ts`, mandatory `@prisma/adapter-pg`, explicit generator `output`, client from `src/generated/prisma`, `migrate dev` does **not** generate. CLI `latest` is `8.0.0-rc.33` — always pin `@7.10.1`. ADR-0002 amended with install-time resolutions (`pnpm@11.28.9`, `typescript@5.9.3`, `@prisma/adapter-pg@7.10.1`, `@date-fns/tz@1.5.0`, `next-themes@0.4.6`).
-- `.gitattributes` (`* text=auto eol=lf`) added — before it, `pnpm lint` could not pass on Windows at all.
 - **`SESSION_SECRET` is the SAME value in Production and Preview** — deliberate call by the Technical Director (11:15): fictional data, no real money, a case study not a real deployment. **The README states it and notes real deployments separate them.** Not a defect; do not "fix" it.
 
 ## Open / blocking
-- ✅ **`gh` 2.103.3 is installed and authenticated as `hervid2`** (11:25 ET). It is NOT on the agent shell's `PATH` — call it as `"/c/Program Files/GitHub CLI/gh.exe"`. CI logs, PR state and checks are now readable directly; **OQ-007 is closed**. Pushing stays human-gated.
+- ✅ **`gh` 2.103.3 installed and authenticated as `hervid2`** (not on the agent shell's `PATH` — call it as `"/c/Program Files/GitHub CLI/gh.exe"`). CI logs, PR state and checks readable directly; **OQ-007 closed**. Pushing and merging stay human-gated.
+- ⚠️ **The repo is PUBLIC** (`gh repo view` → `visibility=PUBLIC`; anonymous API returns 200). An earlier note here claimed it was private — wrong. GitHub asks for a sign-in to read **Actions logs** even on public repos; "cannot read the logs" is not "cannot read the repo". **Do not infer visibility from a logs paywall.**
 - 🛑 **Preview 500s on sign-in** — human confirms `SESSION_SECRET` exists in Vercel's **Preview** environment (not just Production), or pastes the deployment's runtime log.
-- **000 debts:** `/_dev/boom` still public in production; no test carries `AC-000-07`; no favicon (404 confirmed again on Preview). Branch protection on `main` needs CI to name its checks first. `neon` MCP needs auth; `gh` absent (OQ-007).
+- **000 debts are CLOSED, not open** — `/_dev/boom` returns **404 in production** (gated by `OAKFERN_ENABLE_DEV_ROUTES`, `src/lib/dev-routes.ts:19`, verified live 15:00) and `src/app/icon.svg` ships. This file wrongly listed both as open for hours and the coordinator passed them to the planner as fact; the planner checked the code and refused to write them. **Verify a debt before repeating it.** Still real: `AC-000-07` has no test carrying its id, and there is no `.ico`/apple-touch icon.
 
 ## Learnings
-- Verify by breaking it: the lint guardrail, the 503 path and the connection-leak fix were proved by making them fail first. 000 shipped a defect no AC caught (`PrismaClient` per request, 1→27 connections). A spec cannot overrule the brief or roadmap with an `ASM` — amend those too. `next dev`/`next build` append their own rules to `AGENTS.md` — disabled via `agentRules: false`.
+- Verify by breaking it. A spec cannot overrule the brief or roadmap with an `ASM` — amend those too. `next dev`/`next build` append their own rules to `AGENTS.md` — disabled via `agentRules: false`.
 - **A green local suite is not a green suite.** AC-001-15 passed on Windows and failed deterministically on Linux CI. Cross-OS rendering gaps hide real defects — CI is the authority, never the laptop.
 
 ## Next step
