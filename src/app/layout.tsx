@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { Geist } from 'next/font/google';
 
+import { ThemeProvider } from '@/components/theme-provider';
+
 import './globals.css';
 
 /**
@@ -19,14 +21,20 @@ export const metadata: Metadata = {
 };
 
 /**
- * Root layout. Deliberately a document shell only — `<html lang="en">`, a
- * `<title>` via `metadata`, and the font variable. The UI-01 application shell
- * (sidebar, navigation, dark-mode toggle) is feature 001, not 000.
+ * Root layout: the document shell plus the theme.
+ *
+ * `suppressHydrationWarning` is required and narrow: `next-themes` writes the
+ * `class` and `style` of `<html>` from a blocking script before React
+ * hydrates, so the server markup and the client DOM legitimately differ on
+ * that one element. Without the attribute every page would log a hydration
+ * warning; with it, nothing else on the page is exempt from the check.
  */
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={geistSans.variable}>
-      <body>{children}</body>
+    <html lang="en" className={geistSans.variable} suppressHydrationWarning>
+      <body>
+        <ThemeProvider>{children}</ThemeProvider>
+      </body>
     </html>
   );
 }
