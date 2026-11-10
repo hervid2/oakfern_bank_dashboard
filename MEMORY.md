@@ -14,11 +14,18 @@ regardless of where 003 is — a clock rule, not an estimate. Delivers **2 of 5*
 **The 0.43 calibration did NOT hold for UI work** (T-10…T-13 ran 3× its estimate). Do not trust it again.
 Human is on a **Pro ($20) plan** — two agents were already killed by session limits. Be economical.
 
-## Where 001 stands
-Committed on `feat/001-domain-data-shell`: **T-01…T-07**. T-08 (session/middleware) was interrupted
-mid-task by a session limit and left uncommitted work; an implementer is finishing T-08 + T-09 now.
-Remaining after that: T-10 shadcn primitives · T-11 shell · T-12 routes/states · T-13 e2e ·
-T-14 gate + doc debts · **T-15 🛑 human: Neon migrate+seed** · **T-16 🛑 human: push, PR, Preview**.
+## Where 001 stands (updated 13:15 ET)
+**All 14 implementation tasks are committed** on `feat/001-domain-data-shell` (25 commits ahead of main).
+Full local gate green: lint 0 · typecheck 0 · unit 48 (coverage 98.6 %, threshold 80 % enforcing) ·
+integration 19 · build 0 · e2e 16.
+**T-15 DONE 13:05:** both migrations applied to Neon and `pnpm db:seed` run against it — 8 tables live,
+$913,518.54 cash, 1,369 transactions, runway 18.0 months, all five self-checks passed, and the
+`content-hash 91bd39c0…` is **identical to the local run**, which proves determinism across databases.
+**T-16 in progress:** **PR #2 is open** (head `fda08f5`), GitHub Actions `in_progress`.
+What remains for 001: CI green → **verify the Vercel Preview** (AC-001-23 — this is what closes 000's
+permanently-unverified AC-000-12a, do not skip it) → `/sdd-validate 001 combined` → 🚦 **G-Merge** → merge.
+⚠️ **Tell the human to comment out `DIRECT_DATABASE_URL` in `.env.local`** now that T-15 is done:
+while it is set, `pnpm db:reset` would drop the **Neon production** database, not local Docker.
 
 ## Decided (do not re-litigate)
 - **Scope cut** (top of `docs/roadmap.md`): 004 and 006 **CUT**, 007 dissolved into 008, 003 Must-only, 005 reduced to internal transfer + idempotency + BR-002. Delivers **3 of the 5 areas** the case names; the README must say so plainly.
