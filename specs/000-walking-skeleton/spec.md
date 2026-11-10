@@ -139,7 +139,7 @@ Two preventive guardrails are nevertheless set up now so the BRs are enforceable
 | Validations | N/A — `/api/health` takes no input, so there is nothing for Zod to parse. Zod is still installed (ADR-0002) and first used in 001. |
 | Migrations | One migration committed under `prisma/migrations/`. **Rollback strategy:** the migration creates a single table referenced by no business code, so rollback is `DROP TABLE` (or it is simply superseded by feature 001's schema migration). Nothing depends on it. Forward-only during the sprint. |
 | Database access | Only through `src/server/repositories/health.ts` (`pingDatabase()`), the single Prisma importer in 000. |
-| Local database | Docker Compose PostgreSQL on `5432` (OQ-006; port verified free 2026-11-09). |
+| Local database | Docker Compose PostgreSQL published on host **`5433`** (container-internal and CI still `5432`). **Corrected 2026-11-09 during T-04:** the earlier claim that 5432 was free was **wrong** — a native Windows service `postgresql-x64-18` is listening on it, and `localhost` connections reached that server instead, failing with `P1000: Authentication failed`. No AC asserts the port; AC-000-05 only requires the migration to apply. Also note `postgres:18` requires its volume mounted at `/var/lib/postgresql`, not the pre-18 `/var/lib/postgresql/data`, or the entrypoint aborts. |
 | CI database | A PostgreSQL service container in the GitHub Actions job, so CI and local are identical (ADR-0006). The integration test is what proves they agree. |
 | Preview / Production database | Neon project `sweet-feather-13830390` (Postgres 18, `aws-us-east-1`), reached through `DATABASE_URL` set in Vercel. **OQ-010 resolved 2026-11-09: Preview shares the Neon primary** — smallest deadline surface; revisited before feature 001 writes the real migration, when a per-PR Neon branch becomes worthwhile. |
 | Seed | N/A — the deterministic seed is FR-036, feature 001. |
@@ -271,7 +271,7 @@ The OQ-008 and roadmap updates required by that list were made in version 0.2 of
 | TD-008 | **Stays open and is carried forward — 000 does not close it.** None of the four packages is installed in 000: `@axe-core/playwright` is deliberately **not** resolved here and moves to **feature 003** (human's timebox decision, 2026-11-09); `@date-fns/tz`, `lucide-react` and `sonner` are simply not needed by a skeleton and are verified at install time by the feature that first uses them (001 / 003). The `docs/roadmap.md` TD-008 row was updated from "due in feature 000" accordingly, and feature 003's roadmap scope now names the axe scan of `/` so the cut is not silently lost. |
 | TD-009 / RSK-09 | Prisma held at `7.10.1`; a bare `pnpm add prisma` is forbidden (AC-000-01 verifies the resolved versions). |
 | RSK-04 | Neon autosuspend means the first Preview request may be slow; expected, and not an AC-000-12a failure. |
-| RSK-07 | Docker daemon was up (29.7.2) with port 5432 free on 2026-11-09; §4.2 states the Neon-branch fallback if that changes. |
+| RSK-07 | Docker daemon up (29.7.2). **The "port 5432 free" half of this risk materialised** — it was occupied by a native PostgreSQL service; resolved by publishing `5433` on the host (§4.2). The Neon-branch fallback was not needed. |
 
 ## 12. Change log
 | Version | Date | Change | Approved by |
