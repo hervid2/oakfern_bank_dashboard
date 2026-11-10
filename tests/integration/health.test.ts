@@ -48,8 +48,10 @@ describe('database health (integration)', () => {
     expect(result.latencyMs).toBeGreaterThanOrEqual(0);
   });
 
-  it('AC-000-10: a typed query on the migrated SkeletonCheck model succeeds, proving migrate + generate + connect agree', async () => {
-    const count = await prisma.skeletonCheck.count();
+  it('AC-000-10: a typed query on a migrated domain model succeeds, proving migrate + generate + connect agree', async () => {
+    // Feature 001's `domain_model` migration dropped 000's `SkeletonCheck`
+    // table (ASM-023), so the probe now runs against a real domain model.
+    const count = await prisma.transaction.count();
 
     expect(typeof count).toBe('number');
     expect(count).toBeGreaterThanOrEqual(0);

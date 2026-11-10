@@ -20,6 +20,7 @@
     "test:e2e": "playwright test",
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
+    "db:reset": "prisma migrate reset --force",
     "db:seed": "node --eval \"console.error('db:seed is not implemented until feature 001 (FR-036).'); process.exit(1)\""
   },
   "dependencies": {

@@ -1,4 +1,4 @@
-import { defineConfig, env } from 'prisma/config';
+import { defineConfig } from 'prisma/config';
 
 /**
  * Prisma 7 configuration (plan.md §7.2).
@@ -18,12 +18,37 @@ for (const envFile of ['.env.local', '.env']) {
   }
 }
 
+/**
+ * The CLI datasource prefers `DIRECT_DATABASE_URL` (plan §3.4).
+ *
+ * Neon's pooled host (PgBouncer, `-pooler`) cannot run `prisma migrate deploy`:
+ * migrations need session-level features — advisory locks and non-pipelined
+ * DDL — that a transaction pool does not provide. The runtime client in
+ * `src/server/repositories/client.ts` keeps reading `DATABASE_URL`, so the pool
+ * stays pooled and only the CLI goes direct.
+ *
+ * Empty strings count as absent: `.env.example` ships
+ * `DIRECT_DATABASE_URL=""`, and `??` alone would hand the CLI an empty URL.
+ */
+const firstNonEmpty = (...values: readonly (string | undefined)[]): string => {
+  for (const value of values) {
+    if (value !== undefined && value.trim() !== '') {
+      return value;
+    }
+  }
+
+  throw new Error(
+    'Neither DIRECT_DATABASE_URL nor DATABASE_URL is set. Copy .env.example to .env.local and fill it in.',
+  );
+};
+
 export default defineConfig({
   schema: 'prisma/schema.prisma',
   migrations: {
     path: 'prisma/migrations',
+    seed: 'pnpm db:seed',
   },
   datasource: {
-    url: env('DATABASE_URL'),
+    url: firstNonEmpty(process.env.DIRECT_DATABASE_URL, process.env.DATABASE_URL),
   },
 });
